@@ -32,7 +32,7 @@ requirements → estimates → API → data model → architecture → deep dive
 - [Distributed message queue](case-studies/distributed-message-queue.md) · [Unique ID generator](case-studies/unique-id-generator.md) · [Distributed rate limiter](case-studies/distributed-rate-limiter.md)
 - [Web crawler](case-studies/web-crawler.md) · [Ad-click aggregator](case-studies/ad-click-aggregator.md)
 
-## Frontend system design — *filled in Phase 4*
+## Frontend system design — ✅ [`frontend-system-design.md`](frontend-system-design.md)
 - [ ] Rendering strategies: CSR, SSR, SSG, ISR, streaming SSR, RSC, Partial Prerendering, islands
 - [ ] Data fetching & caching (SWR/React Query, ISR, edge), state at scale
 - [ ] Performance (Core Web Vitals, bundling, code-splitting), accessibility as architecture, micro-frontends

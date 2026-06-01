@@ -4,8 +4,8 @@ The code lives in [`../../dsa-java/`](../../dsa-java/); this folder holds the **
 pattern works, when to reach for it, and the quick-reference tables.
 
 ## Contents
-- `CONVENTIONS.md` — how reference impls and coding stubs are structured *(added with `dsa-java`)*
-- `ROADMAP.md` — the data-structure curriculum + NeetCode 150 tracker *(added with `dsa-java`)*
+- [`CONVENTIONS.md`](CONVENTIONS.md) — how reference impls and coding stubs are structured
+- [`ROADMAP.md`](ROADMAP.md) — the data-structure curriculum + NeetCode 150 tracker
 - [`patterns/`](patterns/) — ✅ one note per coding pattern (recognize → template → pitfalls → problems), 18 notes
 - `complexity-cheatsheet.md` — Big-O per structure/operation *(see [`../cheatsheets/`](../cheatsheets/))*
 

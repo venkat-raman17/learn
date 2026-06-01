@@ -78,6 +78,8 @@ leave stories to the end.
   vending machine, notification service, … (spec + tests in `backend-service`).
 - **Practice (UI, React):** design a reusable data-table, autocomplete/typeahead, a design-system
   component, a modal/toast system (in `web/spa-react-vite`).
+- **Self-check:** after each kata, compare against its `SOLUTION.md` (reference design) and grade
+  yourself with [`docs/rubrics.md`](docs/rubrics.md).
 - **Resources:** *Head First Design Patterns*, refactoring.guru.
 
 ### Phase 4 — High-Level Design (Weeks 7–10) · `backend-service` + `infra` + `web/ssr-tanstack-start` + `agentic-python`
@@ -86,6 +88,8 @@ leave stories to the end.
 - **Read:** `docs/hld/` — the framework, core concepts (scaling, caching, sharding, replication,
   CAP/PACELC, queues/Kafka, consistent hashing) **and the 2026 must-knows**: vector DBs/RAG, LLM
   & agentic system design, idempotency, multi-region, observability & cost-per-request.
+- **Study:** the **12 worked case studies** in [`docs/hld/case-studies/`](docs/hld/case-studies/) —
+  read each prompt, design it on paper first, then compare against the worked solution and grade with the rubric.
 - **Hands-on:** bring up `infra` (Postgres/Redis/Kafka KRaft) and build a small event-driven slice
   in `backend-service` (producer/consumer + DLQ + tracing). Compare rendering strategies by building
   one feature across the `web/` apps — TanStack Start (client-first), Next.js (RSC-first), React
@@ -109,9 +113,12 @@ leave stories to the end.
   [Pragmatic Engineer](https://newsletter.pragmaticengineer.com/).
 
 ### Phase 6 — Mock & capstone (Week 12) · all
-- Mock interviews (coding, LLD, HLD, behavioral) under time pressure.
-- **Capstone:** one feature across the full stack — React UI → Spring backend → Kafka event →
-  Postgres — demonstrating full-stack + system-design fluency. Write it up in `docs/hld/`.
+- **Mock interviews** under time pressure — the self-run kit is in [`docs/mock-interviews/`](docs/mock-interviews/)
+  (coding, LLD, HLD, behavioral, + a full-loop onsite simulation), each with *fresh* prompts and
+  self-scoring via [`docs/rubrics.md`](docs/rubrics.md).
+- **Capstone** — build [`capstone/`](capstone/): *TinyLink*, a URL shortener with real-time click
+  analytics across React → Spring → Kafka → Postgres (the system you designed in the HLD case study).
+  Spec + milestones in its README; reference architecture in `DESIGN.md` to self-check against.
 
 ---
 

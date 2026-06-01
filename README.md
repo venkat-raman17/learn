@@ -22,7 +22,8 @@ the [cheat sheets](docs/cheatsheets/), and the [self-grading rubrics](docs/rubri
 | `expo-app/` | Expo / React Native | Native (iOS/Android) **and** web from one codebase | ✅ web build green |
 | `agentic-python/` | Python 3.12+, uv, Claude Agent SDK | Modern AI-systems / agentic design | 🟡 scaffold |
 | `infra/` | Docker Compose | Postgres, Redis, Kafka (KRaft) for hands-on HLD | 🟡 ready |
-| [`docs/`](docs/) | Markdown | Study knowledge base (DSA, LLD, HLD, behavioral, process) | ✅ complete — LLD/HLD (+12 cases), behavioral/process (11), 18 pattern notes, cheat sheets, study guide, rubrics |
+| [`docs/`](docs/) | Markdown | Study knowledge base (DSA, LLD, HLD, behavioral, process) + mock kit | ✅ complete — LLD/HLD (+12 cases), behavioral/process (11), 18 pattern notes, cheat sheets, study guide, rubrics, mock-interview kit |
+| [`capstone/`](capstone/) | Full-stack build | Phase 6 capstone — build *TinyLink* (URL shortener + real-time analytics) across the stack | ✅ blueprint (spec + reference design) |
 
 Status: ✅ done · 🟡 in progress · ⬜ planned.
 
@@ -33,7 +34,7 @@ Status: ✅ done · 🟡 in progress · ⬜ planned.
 3. **LLD** — OOP/SOLID/patterns + problems, backend (`backend-service`) **and** UI (`web`)
 4. **HLD** — system design + frontend rendering + event-driven (`backend-service`, `infra`, `web`, `agentic-python`)
 5. **Behavioral & process** — Staff bar, story bank, recruiter→offer (`docs`)
-6. **Mock & capstone** — one feature across the full stack
+6. **Mock & capstone** — self-run mock kit (`docs/mock-interviews/`) + build the `capstone/`
 
 ## How it works
 
