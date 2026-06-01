@@ -22,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * <p>Do NOT modify these tests. Add your own test class if you want extra coverage.
  */
-@Disabled("LLD practice — implement, then remove @Disabled")
 class ParkingLotTest {
 
     // ---------------------------------------------------------------------------

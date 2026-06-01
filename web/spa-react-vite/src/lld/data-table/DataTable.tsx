@@ -1,163 +1,351 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import './DataTable.css';
 
 // ---------------------------------------------------------------------------
 // Sub-types
 // ---------------------------------------------------------------------------
 
-/** Direction a column can be sorted. 'none' means unsorted. */
 export type SortDirection = 'asc' | 'desc' | 'none';
 
-/** Active sort state: which column and which direction (never 'none'). */
 export interface SortState {
   key: string;
   direction: Exclude<SortDirection, 'none'>;
 }
 
-/**
- * Definition for a single column in the table.
- * @template T - The row data type.
- */
 export interface ColumnDef<T> {
-  /**
-   * Unique identifier for this column.
-   * May be a key of T or any string for computed/synthetic columns.
-   */
   key: string;
-  /** Text rendered in the <th> header cell. */
   header: string;
-  /**
-   * Optional custom cell renderer.
-   * Receives the full row object and its zero-based index in `data`.
-   * When omitted, the component falls back to String(row[key as keyof T] ?? '').
-   */
   render?: (row: T, rowIndex: number) => React.ReactNode;
-  /** When true, the column header becomes a sort trigger. Default: false. */
   sortable?: boolean;
 }
 
-// ---------------------------------------------------------------------------
-// Main props interface
-// ---------------------------------------------------------------------------
-
 export interface DataTableProps<T> {
-  /** Column definitions controlling headers, cell rendering, and sort eligibility. */
   columns: ColumnDef<T>[];
-  /** Array of row data objects. */
   data: T[];
-  /**
-   * Number of rows per page. When omitted, all rows are shown and pagination
-   * controls are hidden.
-   */
   pageSize?: number;
-  /**
-   * Callback fired when the user clicks a sortable column header.
-   * Providing this prop makes sort controlled (the parent owns `sortState`).
-   * When omitted, the component manages sort state internally.
-   */
   onSort?: (key: string, direction: SortDirection) => void;
-  /**
-   * Controlled sort state. Pair with `onSort` for server-side sorting.
-   * Ignored when `onSort` is not provided.
-   */
   sortState?: SortState;
-  /**
-   * When true, each row renders a leading checkbox for selection.
-   * Default: false.
-   */
   selectable?: boolean;
-  /**
-   * Controlled set of selected row indices (indices into `data`).
-   * Must be paired with `onSelectionChange`.
-   */
   selectedRows?: Set<number>;
-  /**
-   * Called whenever the selection changes.
-   * Receives the new complete set of selected row indices.
-   */
   onSelectionChange?: (selected: Set<number>) => void;
-  /**
-   * When true, renders a loading skeleton instead of data rows.
-   * Default: false.
-   */
   loading?: boolean;
-  /**
-   * Message displayed inside the table when `data` is empty.
-   * Default: "No data available."
-   */
   emptyMessage?: string;
-  /**
-   * Accessible label rendered as a <caption> element.
-   * Strongly recommended for screen-reader context.
-   */
   caption?: string;
-  /** Additional CSS class applied to the root <table> element. */
   className?: string;
 }
 
 // ---------------------------------------------------------------------------
-// Component stub — implement the body below
+// Sort icon helper
 // ---------------------------------------------------------------------------
 
-/**
- * DataTable<T>
- *
- * A generic, accessible data table with client-side sort, pagination, and
- * optional row selection.
- *
- * TODO: implement the following inside the function body:
- *  1. Internal state: currentPage, internalSortState (uncontrolled mode),
- *     internalSelectedRows (uncontrolled mode).
- *  2. Derived data (useMemo):
- *     - sorted rows (respect controlled sortState vs internal state)
- *     - paginated slice
- *  3. Render:
- *     - <table> with real <thead>, <tbody>, <tfoot> (pagination)
- *     - Sortable <th> buttons with aria-sort attribute
- *     - Select-all checkbox in header (aria-checked="mixed" when partial)
- *     - Per-row checkboxes when selectable=true
- *     - Loading skeleton rows when loading=true
- *     - Empty-state row spanning all columns when data is empty
- *     - Pagination controls: prev/next buttons, page indicator
- *     - aria-live region for page-change announcements
- */
+function SortIcon({ direction }: { direction: SortDirection }) {
+  const label =
+    direction === 'asc' ? '▲' : direction === 'desc' ? '▼' : '⇅';
+  return (
+    <em
+      className={`dt-sort-icon${direction !== 'none' ? ' dt-sort-icon--active' : ''}`}
+      aria-hidden="true"
+    >
+      {label}
+    </em>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
 function DataTable<T>(props: DataTableProps<T>): React.ReactElement {
-  // Destructure props so TypeScript confirms the full interface is used.
   const {
     columns,
     data,
     pageSize,
     onSort,
-    sortState,
+    sortState: controlledSortState,
     selectable,
-    selectedRows,
+    selectedRows: controlledSelectedRows,
     onSelectionChange,
-    loading,
-    emptyMessage,
+    loading = false,
+    emptyMessage = 'No data available.',
     caption,
     className,
   } = props;
 
-  // Silence "unused variable" warnings in the stub — remove these when implementing.
-  void columns;
-  void data;
-  void pageSize;
-  void onSort;
-  void sortState;
-  void selectable;
-  void selectedRows;
-  void onSelectionChange;
-  void loading;
-  void emptyMessage;
-  void caption;
-  void className;
+  // Internal state — used when the parent doesn't supply controlled props
+  const [currentPage, setCurrentPage] = useState(1);
+  const [internalSortState, setInternalSortState] = useState<SortState | null>(null);
+  const [internalSelectedRows, setInternalSelectedRows] = useState<Set<number>>(
+    new Set(),
+  );
 
-  // TODO: implement DataTable
+  const isControlledSort = onSort !== undefined;
+  const isControlledSelection =
+    onSelectionChange !== undefined && controlledSelectedRows !== undefined;
+
+  const effectiveSortState = isControlledSort ? controlledSortState ?? null : internalSortState;
+  const effectiveSelectedRows = isControlledSelection
+    ? controlledSelectedRows
+    : internalSelectedRows;
+
+  // Reset to page 1 when data or sort changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [data, effectiveSortState]);
+
+  // Sorted rows
+  const sortedData = useMemo(() => {
+    if (!effectiveSortState) return data;
+    const { key, direction } = effectiveSortState;
+    return [...data].sort((a, b) => {
+      const aVal = (a as Record<string, unknown>)[key];
+      const bVal = (b as Record<string, unknown>)[key];
+      if (aVal === bVal) return 0;
+      const cmp = String(aVal).localeCompare(String(bVal), undefined, { numeric: true });
+      return direction === 'asc' ? cmp : -cmp;
+    });
+  }, [data, effectiveSortState]);
+
+  // Paginated slice
+  const totalPages = pageSize ? Math.max(1, Math.ceil(sortedData.length / pageSize)) : 1;
+  const pagedData = useMemo(() => {
+    if (!pageSize) return sortedData;
+    const start = (currentPage - 1) * pageSize;
+    return sortedData.slice(start, start + pageSize);
+  }, [sortedData, currentPage, pageSize]);
+
+  // Page announcements for screen readers
+  const [pageAnnounce, setPageAnnounce] = useState('');
+
+  const handleSortClick = (key: string) => {
+    let next: SortDirection;
+    if (effectiveSortState?.key === key) {
+      if (effectiveSortState.direction === 'asc') next = 'desc';
+      else if (effectiveSortState.direction === 'desc') next = 'none';
+      else next = 'asc';
+    } else {
+      next = 'asc';
+    }
+
+    if (isControlledSort) {
+      onSort!(key, next);
+    } else {
+      setInternalSortState(
+        next === 'none' ? null : { key, direction: next },
+      );
+    }
+  };
+
+  const getSortDirection = (key: string): SortDirection =>
+    effectiveSortState?.key === key ? effectiveSortState.direction : 'none';
+
+  // Selection helpers
+  const updateSelection = (next: Set<number>) => {
+    if (isControlledSelection) onSelectionChange!(next);
+    else setInternalSelectedRows(next);
+  };
+
+  const handleRowSelect = (dataIndex: number) => {
+    const next = new Set(effectiveSelectedRows);
+    if (next.has(dataIndex)) next.delete(dataIndex);
+    else next.add(dataIndex);
+    updateSelection(next);
+  };
+
+  // Compute the absolute data indices for the current page
+  const pageDataIndices = pagedData.map((_, i) =>
+    pageSize ? (currentPage - 1) * pageSize + i : i,
+  );
+
+  const allPageSelected =
+    pageDataIndices.length > 0 &&
+    pageDataIndices.every((i) => effectiveSelectedRows.has(i));
+  const somePageSelected = pageDataIndices.some((i) =>
+    effectiveSelectedRows.has(i),
+  );
+
+  const handleSelectAll = () => {
+    const next = new Set(effectiveSelectedRows);
+    if (allPageSelected) {
+      pageDataIndices.forEach((i) => next.delete(i));
+    } else {
+      pageDataIndices.forEach((i) => next.add(i));
+    }
+    updateSelection(next);
+  };
+
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
+    setPageAnnounce(`Page ${page} of ${totalPages}`);
+  };
+
+  // Skeleton col count includes the selection column if enabled
+  const colCount = columns.length + (selectable ? 1 : 0);
+  const skeletonWidths = ['60%', '80%', '50%', '70%', '40%'];
+
   return (
-    <div style={{ fontFamily: 'sans-serif', padding: '1rem', border: '1px dashed #888', borderRadius: 4 }}>
-      <strong>TODO: implement DataTable</strong>
-      <p style={{ margin: '0.5rem 0 0', color: '#555', fontSize: '0.875rem' }}>
-        See README.md for the full spec, props interface, accessibility requirements, and follow-up questions.
-      </p>
+    <div className="dt-wrapper">
+      {/* Visually hidden live region for page change announcements */}
+      <div aria-live="polite" className="dt-page-announce">
+        {pageAnnounce}
+      </div>
+
+      <table
+        role="grid"
+        className={`dt${className ? ` ${className}` : ''}`}
+      >
+        {caption && <caption>{caption}</caption>}
+
+        <thead>
+          <tr>
+            {selectable && (
+              <th style={{ width: '2.5rem' }}>
+                <input
+                  type="checkbox"
+                  className="dt-checkbox"
+                  checked={allPageSelected}
+                  ref={(el) => {
+                    if (el) el.indeterminate = somePageSelected && !allPageSelected;
+                  }}
+                  onChange={handleSelectAll}
+                  aria-label="Select all rows on this page"
+                />
+              </th>
+            )}
+            {columns.map((col) => {
+              const dir = getSortDirection(col.key);
+              return (
+                <th
+                  key={col.key}
+                  aria-sort={
+                    col.sortable
+                      ? dir === 'none'
+                        ? 'none'
+                        : dir === 'asc'
+                        ? 'ascending'
+                        : 'descending'
+                      : undefined
+                  }
+                >
+                  {col.sortable ? (
+                    <button
+                      type="button"
+                      className="dt-sort-btn"
+                      onClick={() => handleSortClick(col.key)}
+                    >
+                      {col.header}
+                      <SortIcon direction={dir} />
+                    </button>
+                  ) : (
+                    col.header
+                  )}
+                </th>
+              );
+            })}
+          </tr>
+        </thead>
+
+        <tbody>
+          {loading ? (
+            // Skeleton rows
+            Array.from({ length: pageSize ?? 5 }).map((_, rowIdx) => (
+              <tr key={rowIdx} aria-hidden="true">
+                {selectable && (
+                  <td>
+                    <span
+                      className="dt-skeleton"
+                      style={{ width: '1rem' }}
+                    />
+                  </td>
+                )}
+                {columns.map((col, colIdx) => (
+                  <td key={col.key}>
+                    <span
+                      className="dt-skeleton"
+                      style={{
+                        width: skeletonWidths[(rowIdx + colIdx) % skeletonWidths.length],
+                      }}
+                    />
+                  </td>
+                ))}
+              </tr>
+            ))
+          ) : pagedData.length === 0 ? (
+            <tr>
+              <td className="dt-empty" colSpan={colCount}>
+                {emptyMessage}
+              </td>
+            </tr>
+          ) : (
+            pagedData.map((row, pageRowIdx) => {
+              const dataIndex = pageDataIndices[pageRowIdx];
+              const isSelected = effectiveSelectedRows.has(dataIndex);
+              return (
+                <tr
+                  key={dataIndex}
+                  className={isSelected ? 'dt-row--selected' : undefined}
+                  aria-selected={selectable ? isSelected : undefined}
+                >
+                  {selectable && (
+                    <td>
+                      <input
+                        type="checkbox"
+                        className="dt-checkbox"
+                        checked={isSelected}
+                        onChange={() => handleRowSelect(dataIndex)}
+                        aria-label={`Select row ${dataIndex + 1}`}
+                      />
+                    </td>
+                  )}
+                  {columns.map((col) => (
+                    <td key={col.key}>
+                      {col.render
+                        ? col.render(row, dataIndex)
+                        : String(
+                            (row as Record<string, unknown>)[col.key] ?? '',
+                          )}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })
+          )}
+        </tbody>
+
+        {pageSize && !loading && sortedData.length > 0 && (
+          <tfoot>
+            <tr>
+              <td colSpan={colCount}>
+                <div className="dt-pagination">
+                  <span>
+                    {Math.min((currentPage - 1) * pageSize + 1, sortedData.length)}–
+                    {Math.min(currentPage * pageSize, sortedData.length)} of{' '}
+                    {sortedData.length}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => goToPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    aria-label="Previous page"
+                  >
+                    ‹
+                  </button>
+                  <span aria-current="page">
+                    {currentPage} / {totalPages}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => goToPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    aria-label="Next page"
+                  >
+                    ›
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tfoot>
+        )}
+      </table>
     </div>
   );
 }

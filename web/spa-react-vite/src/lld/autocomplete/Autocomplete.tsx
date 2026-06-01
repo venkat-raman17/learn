@@ -1,40 +1,21 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useReducer, useRef } from "react";
+import "./Autocomplete.css";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-/** A single suggestion item returned by the fetch function. */
 export interface Item {
   id: string;
   label: string;
 }
 
 export interface AutocompleteProps {
-  /**
-   * Async function that returns suggestions for a given query string.
-   * Called after debouncing the user's input.
-   */
   fetchSuggestions: (query: string) => Promise<Item[]>;
-
-  /**
-   * Called when the user selects an item (keyboard Enter or mouse click).
-   */
   onSelect: (item: Item) => void;
-
-  /**
-   * Debounce delay in milliseconds before triggering fetchSuggestions.
-   * @default 300
-   */
   debounceMs?: number;
-
-  /** Placeholder text shown in the input when empty. */
   placeholder?: string;
 }
-
-// ---------------------------------------------------------------------------
-// Internal state shape — useful to define before implementing
-// ---------------------------------------------------------------------------
 
 type FetchStatus = "idle" | "loading" | "success" | "error" | "empty";
 
@@ -42,38 +23,81 @@ interface AutocompleteState {
   query: string;
   items: Item[];
   status: FetchStatus;
-  /** Index of the currently keyboard-highlighted item, or -1 for none. */
   activeIndex: number;
-  /** Whether the dropdown is open. */
   isOpen: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Reducer
+// ---------------------------------------------------------------------------
+
+type Action =
+  | { type: "SET_QUERY"; query: string }
+  | { type: "SET_LOADING" }
+  | { type: "SET_ITEMS"; items: Item[] }
+  | { type: "SET_ERROR" }
+  | { type: "SET_ACTIVE_INDEX"; index: number }
+  | { type: "SELECT_ITEM"; label: string }
+  | { type: "CLOSE" }
+  | { type: "RESET" };
+
+function reducer(state: AutocompleteState, action: Action): AutocompleteState {
+  switch (action.type) {
+    case "SET_QUERY":
+      return { ...state, query: action.query };
+    case "SET_LOADING":
+      return { ...state, status: "loading", isOpen: true };
+    case "SET_ITEMS":
+      return {
+        ...state,
+        items: action.items,
+        status: action.items.length === 0 ? "empty" : "success",
+        isOpen: true,
+        activeIndex: -1,
+      };
+    case "SET_ERROR":
+      return { ...state, status: "error", isOpen: true };
+    case "SET_ACTIVE_INDEX":
+      return { ...state, activeIndex: action.index };
+    case "SELECT_ITEM":
+      return { ...state, query: action.label, isOpen: false, activeIndex: -1 };
+    case "CLOSE":
+      return { ...state, isOpen: false, activeIndex: -1 };
+    case "RESET":
+      return { query: "", items: [], status: "idle", activeIndex: -1, isOpen: false };
+    default:
+      return state;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Highlight helper — wraps the matched substring in <strong>
+// ---------------------------------------------------------------------------
+
+function highlightMatch(label: string, query: string): React.ReactNode {
+  if (!query) return label;
+  const idx = label.toLowerCase().indexOf(query.toLowerCase());
+  if (idx === -1) return label;
+  return (
+    <>
+      {label.slice(0, idx)}
+      <strong>{label.slice(idx, idx + query.length)}</strong>
+      {label.slice(idx + query.length)}
+    </>
+  );
 }
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-/**
- * Autocomplete / Typeahead
- *
- * TODO: implement the component body.
- *
- * Requirements summary (see README.md for full spec):
- *  - Debounce input → call fetchSuggestions → show loading / success / error / empty
- *  - Ignore stale (out-of-order) responses via a request-ID counter or AbortController
- *  - Keyboard navigation: ArrowUp / ArrowDown / Enter / Escape
- *  - Match highlighting: bold the portion of each label that matches the query
- *  - Click-outside closes the dropdown
- *  - ARIA: role="combobox" on input, role="listbox" on dropdown,
- *          role="option" on each item, aria-activedescendant on input
- */
 export const Autocomplete: React.FC<AutocompleteProps> = ({
-  fetchSuggestions: _fetchSuggestions,
-  onSelect: _onSelect,
-  debounceMs: _debounceMs = 300,
+  fetchSuggestions,
+  onSelect,
+  debounceMs = 300,
   placeholder,
 }) => {
-  // TODO: replace stub state with real implementation
-  const [_state, _setState] = useState<AutocompleteState>({
+  const [state, dispatch] = useReducer(reducer, {
     query: "",
     items: [],
     status: "idle",
@@ -81,58 +105,159 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
     isOpen: false,
   });
 
-  // TODO: store the debounce timer ref
-  const _debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const requestIdRef = useRef<number>(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const listboxId = "autocomplete-listbox";
 
-  // TODO: store a request-ID counter or AbortController ref to ignore stale responses
-  const _requestIdRef = useRef<number>(0);
+  // Click-outside closes the dropdown
+  useEffect(() => {
+    const handleMouseDown = (e: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        dispatch({ type: "CLOSE" });
+      }
+    };
+    document.addEventListener("mousedown", handleMouseDown);
+    return () => document.removeEventListener("mousedown", handleMouseDown);
+  }, []);
 
-  // TODO: attach to the root wrapper element for click-outside detection
-  const _containerRef = useRef<HTMLDivElement>(null);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const q = e.target.value;
+    dispatch({ type: "SET_QUERY", query: q });
 
-  // TODO: implement handleInputChange
-  const _handleInputChange = (_e: React.ChangeEvent<HTMLInputElement>): void => {
-    // 1. Update query in state
-    // 2. Clear any pending debounce timer
-    // 3. If query is empty, reset to idle and close dropdown
-    // 4. Otherwise, set a new debounce timer that calls fetchSuggestions
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+
+    if (!q.trim()) {
+      dispatch({ type: "RESET" });
+      return;
+    }
+
+    // Signal that a new request is in flight; discard stale responses
+    const reqId = ++requestIdRef.current;
+    dispatch({ type: "SET_LOADING" });
+
+    debounceTimerRef.current = setTimeout(async () => {
+      try {
+        const items = await fetchSuggestions(q);
+        if (reqId === requestIdRef.current) {
+          dispatch({ type: "SET_ITEMS", items });
+        }
+      } catch {
+        if (reqId === requestIdRef.current) {
+          dispatch({ type: "SET_ERROR" });
+        }
+      }
+    }, debounceMs);
   };
 
-  // TODO: implement handleKeyDown
-  const _handleKeyDown = (_e: React.KeyboardEvent<HTMLInputElement>): void => {
-    // Handle ArrowDown, ArrowUp, Enter, Escape
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    if (!state.isOpen) return;
+
+    switch (e.key) {
+      case "ArrowDown": {
+        e.preventDefault();
+        dispatch({
+          type: "SET_ACTIVE_INDEX",
+          index: Math.min(state.activeIndex + 1, state.items.length - 1),
+        });
+        break;
+      }
+      case "ArrowUp": {
+        e.preventDefault();
+        dispatch({
+          type: "SET_ACTIVE_INDEX",
+          index: Math.max(state.activeIndex - 1, 0),
+        });
+        break;
+      }
+      case "Enter": {
+        const item = state.items[state.activeIndex];
+        if (item) {
+          dispatch({ type: "SELECT_ITEM", label: item.label });
+          onSelect(item);
+        }
+        break;
+      }
+      case "Escape":
+        dispatch({ type: "CLOSE" });
+        break;
+    }
   };
 
-  // TODO: implement handleItemClick
-  const _handleItemClick = (_item: Item): void => {
-    // Call onSelect, close dropdown, update input value
+  const handleItemClick = (item: Item): void => {
+    dispatch({ type: "SELECT_ITEM", label: item.label });
+    onSelect(item);
   };
 
-  // Scaffolded above for your implementation but not yet referenced — these `void`
-  // statements keep the stub compiling under strict `noUnusedLocals`. Delete each as you wire it up.
-  void _debounceTimerRef;
-  void _requestIdRef;
-  void _handleItemClick;
+  const activeDescendant =
+    state.activeIndex >= 0
+      ? `autocomplete-option-${state.activeIndex}`
+      : undefined;
 
-  // Stub render — replace with the real markup
+  const showDropdown =
+    state.isOpen &&
+    (state.status === "loading" ||
+      state.status === "error" ||
+      state.status === "empty" ||
+      state.status === "success");
+
   return (
-    <div ref={_containerRef} style={{ display: "inline-block", position: "relative" }}>
+    <div ref={containerRef} className="autocomplete">
       <input
+        className="autocomplete-input"
         role="combobox"
         aria-autocomplete="list"
-        aria-expanded={false}
-        aria-controls="autocomplete-listbox"
-        aria-activedescendant={undefined}
+        aria-expanded={state.isOpen && state.status === "success"}
+        aria-controls={listboxId}
+        aria-activedescendant={activeDescendant}
         placeholder={placeholder}
-        value=""
-        onChange={_handleInputChange}
-        onKeyDown={_handleKeyDown}
-        readOnly /* remove readOnly once you manage value in state */
+        value={state.query}
+        onChange={handleInputChange}
+        onKeyDown={handleKeyDown}
+        autoComplete="off"
       />
-      {/* TODO: remove this placeholder and render the real dropdown */}
-      <div style={{ color: "#888", fontSize: 12, marginTop: 4 }}>
-        TODO: implement Autocomplete
-      </div>
+
+      {showDropdown && (
+        <div className="autocomplete-dropdown">
+          {state.status === "loading" && (
+            <div className="autocomplete-status">Loading…</div>
+          )}
+          {state.status === "error" && (
+            <div className="autocomplete-status autocomplete-error">
+              Error fetching suggestions.
+            </div>
+          )}
+          {state.status === "empty" && (
+            <div className="autocomplete-status">No results found.</div>
+          )}
+          {state.status === "success" && (
+            <ul id={listboxId} role="listbox" className="autocomplete-list">
+              {state.items.map((item, index) => (
+                <li
+                  key={item.id}
+                  id={`autocomplete-option-${index}`}
+                  role="option"
+                  aria-selected={index === state.activeIndex}
+                  className={`autocomplete-option${
+                    index === state.activeIndex
+                      ? " autocomplete-option--active"
+                      : ""
+                  }`}
+                  onMouseDown={(e) => {
+                    e.preventDefault(); // keep focus on input
+                    handleItemClick(item);
+                  }}
+                >
+                  {highlightMatch(item.label, state.query)}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   );
 };

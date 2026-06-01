@@ -1,158 +1,202 @@
 package com.venkat.backend.lld.elevator;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.TreeSet;
 
 // ---------------------------------------------------------------------------
 // Enums
 // ---------------------------------------------------------------------------
 
-/**
- * The direction a person presses on a floor panel (external request).
- */
-enum Direction {
-    UP, DOWN
-}
-
-/**
- * The current movement direction of an elevator cabin.
- */
-enum ElevatorDirection {
-    UP, DOWN, IDLE
-}
-
-/**
- * The state of an elevator's door.
- */
-enum DoorState {
-    OPEN, CLOSED
-}
+enum Direction      { UP, DOWN }
+enum ElevatorDirection { UP, DOWN, IDLE }
+enum DoorState      { OPEN, CLOSED }
 
 // ---------------------------------------------------------------------------
 // Value / DTO types
 // ---------------------------------------------------------------------------
 
-/**
- * Immutable snapshot of a single elevator's observable state.
- *
- * @param id           zero-based elevator identifier
- * @param currentFloor the floor the elevator is currently on (1-based)
- * @param direction    current movement direction
- * @param doorState    current door state
- */
 record ElevatorState(int id, int currentFloor, ElevatorDirection direction, DoorState doorState) {}
 
 // ---------------------------------------------------------------------------
 // Strategy interface
 // ---------------------------------------------------------------------------
 
-/**
- * Pluggable scheduling strategy that selects which elevator should handle an
- * external floor request.
- *
- * <p>Implement this interface to experiment with different algorithms
- * (nearest-idle, SCAN/LOOK, round-robin, etc.).</p>
- */
 interface SchedulingStrategy {
+    int selectElevator(List<ElevatorState> states, int floor, Direction direction);
+}
+
+// ---------------------------------------------------------------------------
+// Built-in scheduling strategy: nearest idle or same-direction elevator
+// ---------------------------------------------------------------------------
+
+class NearestElevatorStrategy implements SchedulingStrategy {
+
+    @Override
+    public int selectElevator(List<ElevatorState> states, int floor, Direction direction) {
+        int bestId   = -1;
+        int bestDist = Integer.MAX_VALUE;
+
+        for (ElevatorState s : states) {
+            int dist = Math.abs(s.currentFloor() - floor);
+
+            if (s.direction() == ElevatorDirection.IDLE) {
+                if (dist < bestDist) { bestDist = dist; bestId = s.id(); }
+            } else if (s.direction() == ElevatorDirection.UP && direction == Direction.UP && s.currentFloor() <= floor) {
+                if (dist < bestDist) { bestDist = dist; bestId = s.id(); }
+            } else if (s.direction() == ElevatorDirection.DOWN && direction == Direction.DOWN && s.currentFloor() >= floor) {
+                if (dist < bestDist) { bestDist = dist; bestId = s.id(); }
+            }
+        }
+        // Fallback: pick nearest elevator regardless of direction
+        if (bestId == -1) {
+            for (ElevatorState s : states) {
+                int dist = Math.abs(s.currentFloor() - floor);
+                if (dist < bestDist) { bestDist = dist; bestId = s.id(); }
+            }
+        }
+        return bestId;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Internal Elevator model
+// ---------------------------------------------------------------------------
+
+class Elevator {
+
+    private final int id;
+    private int currentFloor;
+    private ElevatorDirection direction;
+    private DoorState doorState;
+    // Ordered set of target floors — drives SCAN movement
+    private final TreeSet<Integer> stops = new TreeSet<>();
+
+    Elevator(int id, int startFloor) {
+        this.id           = id;
+        this.currentFloor = startFloor;
+        this.direction    = ElevatorDirection.IDLE;
+        this.doorState    = DoorState.CLOSED;
+    }
+
+    int getId()              { return id; }
+    int getCurrentFloor()    { return currentFloor; }
+    ElevatorDirection getDirection() { return direction; }
+    DoorState getDoorState() { return doorState; }
+    TreeSet<Integer> getStops()      { return stops; }
+
+    void addStop(int floor) { stops.add(floor); }
+
+    ElevatorState snapshot() {
+        return new ElevatorState(id, currentFloor, direction, doorState);
+    }
 
     /**
-     * Given a read-only snapshot of all elevator states, pick the best elevator
-     * to service a request at {@code floor} in {@code direction}.
-     *
-     * @param states    current state of every elevator (index == elevator id)
-     * @param floor     the floor from which the external request originated (1-based)
-     * @param direction the direction the waiting passenger intends to travel
-     * @return the id of the chosen elevator (must be a valid index into {@code states})
+     * Advance one simulation tick.
+     * <ul>
+     *   <li>If door is OPEN → close it and remove the current floor from stops.</li>
+     *   <li>If moving → advance one floor; open door if we've arrived at a stop.</li>
+     *   <li>If IDLE and stops is non-empty → choose direction and move.</li>
+     * </ul>
      */
-    int selectElevator(List<ElevatorState> states, int floor, Direction direction);
+    void tick() {
+        if (doorState == DoorState.OPEN) {
+            doorState = DoorState.CLOSED;
+            stops.remove(currentFloor);
+            updateDirection();
+            return;
+        }
+
+        if (stops.isEmpty()) {
+            direction = ElevatorDirection.IDLE;
+            return;
+        }
+
+        // Determine next floor to move toward
+        if (direction == ElevatorDirection.IDLE) {
+            updateDirection();
+        }
+
+        if (direction == ElevatorDirection.UP) {
+            currentFloor++;
+        } else if (direction == ElevatorDirection.DOWN) {
+            currentFloor--;
+        }
+
+        if (stops.contains(currentFloor)) {
+            doorState = DoorState.OPEN;
+        }
+    }
+
+    private void updateDirection() {
+        if (stops.isEmpty()) { direction = ElevatorDirection.IDLE; return; }
+        // If currently going UP and there are higher stops, keep going UP
+        if (direction == ElevatorDirection.UP && stops.higher(currentFloor) != null) return;
+        // If currently going DOWN and there are lower stops, keep going DOWN
+        if (direction == ElevatorDirection.DOWN && stops.lower(currentFloor) != null) return;
+
+        // Determine new direction based on remaining stops
+        if (stops.higher(currentFloor) != null) {
+            direction = ElevatorDirection.UP;
+        } else if (stops.lower(currentFloor) != null) {
+            direction = ElevatorDirection.DOWN;
+        } else {
+            direction = ElevatorDirection.IDLE;
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
 // Top-level facade
 // ---------------------------------------------------------------------------
 
-/**
- * Entry point for the Elevator System simulation.
- *
- * <p><strong>Practice goal:</strong> implement all methods whose bodies currently
- * throw {@link UnsupportedOperationException}. Define internal helper classes
- * (e.g. {@code Elevator}) in separate files inside this package — do not change
- * the public API signatures below.</p>
- *
- * <h4>Simulation contract</h4>
- * <ul>
- *   <li>One call to {@link #step()} represents one tick of simulated time.</li>
- *   <li>Each tick: idle elevators are dispatched, moving elevators advance one
- *       floor, elevators at a target floor open their doors (and close them the
- *       following tick so the floor is de-queued).</li>
- *   <li>Floors are 1-based ({@code 1..numFloors}).</li>
- *   <li>Elevator ids are 0-based ({@code 0..numElevators-1}).</li>
- * </ul>
- */
 public class ElevatorSystem {
 
-    /**
-     * Constructs the system.
-     *
-     * @param numFloors     total number of floors in the building (>= 2)
-     * @param numElevators  total number of elevator cabins (>= 1)
-     * @param strategy      the scheduling strategy used to assign external requests
-     * @throws IllegalArgumentException if numFloors < 2 or numElevators < 1
-     */
+    private final int numFloors;
+    private final List<Elevator> elevators;
+    private final SchedulingStrategy strategy;
+
     public ElevatorSystem(int numFloors, int numElevators, SchedulingStrategy strategy) {
-        throw new UnsupportedOperationException("implement me");
+        if (numFloors < 2)    throw new IllegalArgumentException("numFloors must be >= 2");
+        if (numElevators < 1) throw new IllegalArgumentException("numElevators must be >= 1");
+        this.numFloors = numFloors;
+        this.strategy  = strategy != null ? strategy : new NearestElevatorStrategy();
+
+        elevators = new ArrayList<>(numElevators);
+        for (int i = 0; i < numElevators; i++) {
+            elevators.add(new Elevator(i, 1)); // all elevators start at floor 1
+        }
     }
 
-    /**
-     * Records an external hall-call request: someone on {@code floor} wants to
-     * travel in {@code direction}.
-     *
-     * <p>The system must use the {@link SchedulingStrategy} to assign an elevator
-     * to this request (or queue it if no suitable elevator is free).</p>
-     *
-     * @param floor     the floor where the request originates (1-based)
-     * @param direction the direction the passenger wishes to travel
-     * @throws IllegalArgumentException if floor is out of range
-     */
     public void externalRequest(int floor, Direction direction) {
-        throw new UnsupportedOperationException("implement me");
+        validateFloor(floor);
+        List<ElevatorState> states = getStates();
+        int chosen = strategy.selectElevator(states, floor, direction);
+        elevators.get(chosen).addStop(floor);
     }
 
-    /**
-     * Records an internal cabin request: the passenger inside elevator
-     * {@code elevatorId} pressed the button for {@code targetFloor}.
-     *
-     * @param elevatorId  the id of the elevator (0-based)
-     * @param targetFloor the destination floor (1-based)
-     * @throws IllegalArgumentException if elevatorId or targetFloor is out of range
-     */
     public void internalRequest(int elevatorId, int targetFloor) {
-        throw new UnsupportedOperationException("implement me");
+        if (elevatorId < 0 || elevatorId >= elevators.size())
+            throw new IllegalArgumentException("Invalid elevatorId: " + elevatorId);
+        validateFloor(targetFloor);
+        elevators.get(elevatorId).addStop(targetFloor);
     }
 
-    /**
-     * Advances the simulation by one tick.
-     *
-     * <p>Per-tick behaviour (suggested order):</p>
-     * <ol>
-     *   <li>For each elevator with an open door: close the door and remove the
-     *       serviced floor from the queue.</li>
-     *   <li>For each moving elevator: move one floor toward the next target.
-     *       If it has arrived, open the door.</li>
-     *   <li>For each idle elevator: if there are unassigned external requests,
-     *       dispatch it via the strategy.</li>
-     * </ol>
-     */
     public void step() {
-        throw new UnsupportedOperationException("implement me");
+        for (Elevator e : elevators) {
+            e.tick();
+        }
     }
 
-    /**
-     * Returns an immutable snapshot of the current state of all elevators,
-     * ordered by elevator id (ascending).
-     *
-     * @return unmodifiable list of {@link ElevatorState}, one per elevator
-     */
     public List<ElevatorState> getStates() {
-        throw new UnsupportedOperationException("implement me");
+        List<ElevatorState> result = new ArrayList<>(elevators.size());
+        for (Elevator e : elevators) result.add(e.snapshot());
+        return Collections.unmodifiableList(result);
+    }
+
+    private void validateFloor(int floor) {
+        if (floor < 1 || floor > numFloors)
+            throw new IllegalArgumentException("Floor must be between 1 and " + numFloors);
     }
 }

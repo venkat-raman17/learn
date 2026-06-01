@@ -13,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.*;
  * Remove the {@code @Disabled} annotation only after you have implemented the
  * full solution.  All tests must pass without modifying the test code.
  */
-@Disabled("LLD practice — implement, then remove")
 class CacheTest {
 
     // ------------------------------------------------------------------
