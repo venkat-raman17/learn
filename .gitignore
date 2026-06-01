@@ -1,0 +1,55 @@
+datastructures/
+# ---- Java / Maven ----
+target/
+*.class
+*.jar
+*.war
+!**/.mvn/wrapper/maven-wrapper.jar
+.mvn/.gradle-enterprise/
+build/
+.gradle/
+
+# ---- Node / frontend ----
+node_modules/
+dist/
+dist-ssr/
+.output/
+.vinxi/
+.tanstack/
+.next/
+.vite/
+*.local
+coverage/
+
+# ---- Python ----
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+.python-version
+
+# ---- Env / secrets ----
+.env
+.env.*
+!.env.example
+
+# ---- Docker ----
+# (named volumes live in Docker, not the repo)
+
+# ---- IDE / editor ----
+.idea/
+.vscode/
+*.iml
+*.swp
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- Logs ----
+*.log
+logs/
