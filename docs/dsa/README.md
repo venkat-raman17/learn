@@ -6,13 +6,19 @@ pattern works, when to reach for it, and the quick-reference tables.
 ## Contents
 - `CONVENTIONS.md` — how reference impls and coding stubs are structured *(added with `dsa-java`)*
 - `ROADMAP.md` — the data-structure curriculum + NeetCode 150 tracker *(added with `dsa-java`)*
-- `patterns/` — one note per coding pattern (trigger, template, pitfalls) *(filled in Phase 2)*
+- [`patterns/`](patterns/) — ✅ one note per coding pattern (recognize → template → pitfalls → problems), 18 notes
 - `complexity-cheatsheet.md` — Big-O per structure/operation *(see [`../cheatsheets/`](../cheatsheets/))*
 
 ## The 18 coding patterns (NeetCode 150 backbone)
-Arrays & Hashing · Two Pointers · Sliding Window · Stack · Binary Search · Linked List · Trees ·
-Heap/Priority Queue · Backtracking · Tries · Graphs · Advanced Graphs · 1-D DP · 2-D DP · Greedy ·
-Intervals · Math & Geometry · Bit Manipulation.
+One note each in [`patterns/`](patterns/) — recognize → template → pitfalls → the problems:
+[Arrays & Hashing](patterns/arrays-hashing.md) · [Two Pointers](patterns/two-pointers.md) ·
+[Sliding Window](patterns/sliding-window.md) · [Stack](patterns/stack.md) ·
+[Binary Search](patterns/binary-search.md) · [Linked List](patterns/linked-list.md) ·
+[Trees](patterns/trees.md) · [Heap/PQ](patterns/heap-priority-queue.md) ·
+[Backtracking](patterns/backtracking.md) · [Tries](patterns/tries.md) · [Graphs](patterns/graphs.md) ·
+[Advanced Graphs](patterns/advanced-graphs.md) · [1-D DP](patterns/dp-1d.md) · [2-D DP](patterns/dp-2d.md) ·
+[Greedy](patterns/greedy.md) · [Intervals](patterns/intervals.md) ·
+[Math & Geometry](patterns/math-geometry.md) · [Bit Manipulation](patterns/bit-manipulation.md).
 
 Anchor on **NeetCode 150**; treat **NeetCode 250** as optional depth for Staff+ coverage.
 

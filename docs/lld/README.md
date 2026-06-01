@@ -22,7 +22,7 @@ and a `@Disabled` JUnit test that defines "done". Design the internals, implemen
 typed starter component stub. Implement the component.
 - [ ] data-table · [ ] autocomplete · [ ] button (design system) · [ ] toast/notification
 
-Reference solutions on request, after you attempt.
+Reference designs: each kata folder has a `SOLUTION.md` (read it after you attempt).
 
 ## Why this matters at Staff level
 LLD shows you can model a domain, pick patterns deliberately (not cargo-cult), reason about

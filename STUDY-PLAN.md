@@ -13,7 +13,7 @@ first.** Self-contained — clone the repo and follow it from any machine. Track
 ## 0. How to use this plan
 
 - **Hybrid loop.** *Read* the reference (data structures, design docs) → *practice* the stubs
-  (coding & design problems) → ask for the reference solution only **after** you attempt.
+  (coding & design problems) → read the reference solution (in `solutions/`) only **after** you attempt.
 - **One concept per file.** Reference impls are fully documented with Big-O; practice files are a
   spec + failing test you drive to green.
 - **Spaced repetition.** Re-implement a data structure from scratch a few days later; redo a
@@ -22,6 +22,7 @@ first.** Self-contained — clone the repo and follow it from any machine. Track
 
 ## 1. 🚦 START HERE
 
+0. **One-time setup:** [`SETUP.md`](SETUP.md) (install JDK 21 / Node / uv / Docker, run one build). Studying solo? Read [`docs/how-to-study-solo.md`](docs/how-to-study-solo.md) — the attempt-first loop, time-boxing, and self-grading with [`docs/rubrics.md`](docs/rubrics.md).
 1. Read [`docs/00-how-to-use.md`](docs/00-how-to-use.md) and [`docs/dsa/README.md`](docs/dsa/README.md) (5 min).
 2. Open **`dsa-java/`** → read [`docs/dsa/CONVENTIONS.md`](docs/dsa/CONVENTIONS.md).
 3. Your first file: **`dsa-java/src/main/java/com/venkat/dsa/linear/DynamicArray.java`** — read it,
@@ -63,7 +64,7 @@ leave stories to the end.
 - **Backbone:** **NeetCode 150**, organized by the **18 patterns**, foldered by difficulty. Anchor
   on the 150; NeetCode 250 is optional depth.
 - **Loop:** read the pattern note in `docs/dsa/patterns/` → solve 3–5 problems from that group
-  (stub → failing test → green) → request the reference solution to compare → redo a week later.
+  (stub → failing test → green) → read the reference solution in `solutions/` to compare → redo a week later.
 - **Order:** Arrays & Hashing → Two Pointers → Sliding Window → Stack → Binary Search →
   Linked List → Trees → Heap/PQ → Backtracking → Tries → Graphs → Advanced Graphs → 1-D DP →
   2-D DP → Greedy → Intervals → Math & Geometry → Bit Manipulation.

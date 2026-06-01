@@ -8,17 +8,21 @@ frontend), hands-on event-driven/infra, modern agentic systems, and the human ro
 **👉 Start with [`STUDY-PLAN.md`](STUDY-PLAN.md)** — the recommended 12-week path and exactly
 which project and file to open first. Track progress in [`PROGRESS.md`](PROGRESS.md).
 
+**Studying solo / just unzipped this?** Do [`SETUP.md`](SETUP.md) once, then read
+[`docs/how-to-study-solo.md`](docs/how-to-study-solo.md). Self-check with the verified `solutions/`,
+the [cheat sheets](docs/cheatsheets/), and the [self-grading rubrics](docs/rubrics.md).
+
 ## Projects
 
 | Folder | Stack | Purpose | Status |
 | --- | --- | --- | --- |
-| [`dsa-java/`](dsa-java/) | Java 21, Maven, JUnit 5 | Data structures (reference) + coding (NeetCode 150) | ✅ Phase 1 (29 impls, 790 tests) · ✅ Phase 2 (150 stubs ready) |
+| [`dsa-java/`](dsa-java/) | Java 21, Maven, JUnit 5 | Data structures (reference) + coding (NeetCode 150) | ✅ 29 DS impls · 150 stubs **+ verified solutions** · 940 tests green |
 | `backend-service/` | Spring Boot 4.0.6, Spring Kafka, JPA | Backend LLD/HLD, event-driven, DB design | 🟡 builds green · 8 LLD katas ready |
 | [`web/`](web/README.md) | React: Vite SPA · TanStack Start · Next.js · React Router 7 · Astro | Frontend LLD/HLD — compare rendering paradigms (CSR / SSR / RSC / islands) | ✅ all 5 scaffolded (4 builds verified) |
 | `expo-app/` | Expo / React Native | Native (iOS/Android) **and** web from one codebase | ✅ web build green |
 | `agentic-python/` | Python 3.12+, uv, Claude Agent SDK | Modern AI-systems / agentic design | 🟡 scaffold |
 | `infra/` | Docker Compose | Postgres, Redis, Kafka (KRaft) for hands-on HLD | 🟡 ready |
-| [`docs/`](docs/) | Markdown | Study knowledge base (DSA, LLD, HLD, behavioral, process) | 🟡 DSA + LLD/HLD foundations + 12 HLD case studies; behavioral/process outlined |
+| [`docs/`](docs/) | Markdown | Study knowledge base (DSA, LLD, HLD, behavioral, process) | ✅ complete — LLD/HLD (+12 cases), behavioral/process (11), 18 pattern notes, cheat sheets, study guide, rubrics |
 
 Status: ✅ done · 🟡 in progress · ⬜ planned.
 
@@ -35,7 +39,7 @@ Status: ✅ done · 🟡 in progress · ⬜ planned.
 
 **Hybrid model:** data structures and reading docs are **reference to study**; coding and design
 problems are **practice-first** — a stub/spec + tests you solve yourself, with a reference
-solution provided on request *after* you attempt. One concept per file.
+solution provided in the repo (`solutions/`), to read *after* you attempt. One concept per file.
 
 ## Quick start
 

@@ -1,7 +1,7 @@
 # The interview process — recruiter → offer
 
-Everything around the technical rounds: how to handle each conversation with intent. *Filled in
-Phase 5; outline below.*
+Everything around the technical rounds: how to handle each conversation with intent. ✅ All written
+— links below.
 
 ## The rounds (typical Staff loop, 2025–2026)
 | Round | Who | ~Time | What they assess |
@@ -15,15 +15,14 @@ Phase 5; outline below.*
 
 Timeline: often ~5–6 weeks end to end at large companies.
 
-## Topics — *filled in Phase 5*
-- [ ] `recruiter-screen.md` — "how to face the recruiter": what they screen for, your 60-second
-  pitch, questions to ask, comp-range framing, red flags.
-- [ ] `hiring-manager.md` — team-fit narrative, why this role, your leadership story, questions that signal seniority.
-- [ ] `managerial-round.md` — leadership-fit/skip-level: conflict, mentorship, driving alignment, dealing with ambiguity.
-- [ ] `negotiation.md` — leveling vs comp, total-comp components (base/bonus/equity/RSU/refresh), competing offers, anchoring, how to negotiate respectfully.
-- [ ] `leveling.md` — what separates Senior (E5) from Staff (E6) from Principal; how to present scope evidence; downleveling and how to avoid it.
-- [ ] `team-matching.md` — for Google/Meta-style team match: choosing a team, questions to ask.
-- [ ] `logistics.md` — virtual-onsite tips, whiteboard/coding etiquette, follow-ups, handling rejection.
+## Topics — ✅ written
+- [`recruiter-screen.md`](recruiter-screen.md) — what they screen for, your 60-second pitch, comp-range framing, questions to ask, red flags.
+- [`hiring-manager.md`](hiring-manager.md) — team-fit narrative, why this role, your leadership story, seniority-signaling questions.
+- [`managerial-round.md`](managerial-round.md) — leadership-fit / skip-level: conflict, mentorship, driving alignment, ambiguity.
+- [`negotiation.md`](negotiation.md) — level-first, total-comp components, competing offers, anchoring, respectful scripts.
+- [`leveling.md`](leveling.md) — Senior (E5) vs Staff (E6) vs Principal; presenting scope evidence; avoiding downlevel.
+- [`team-matching.md`](team-matching.md) — Google/Meta-style team match: choosing a team, questions to ask.
+- [`logistics.md`](logistics.md) — virtual-onsite tips, the loop, follow-ups, handling rejection.
 
 ## Why this matters
 The recruiter and HM rounds set your *level* and *comp band* before you write a line of code.

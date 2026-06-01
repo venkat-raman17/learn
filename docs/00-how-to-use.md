@@ -12,7 +12,7 @@
 ## The hybrid loop
 1. **Read** the reference doc / data-structure impl.
 2. **Practice** the matching stub/spec until tests pass — *your* solution first.
-3. **Compare** against the reference solution (ask for it after you attempt).
+3. **Compare** against the reference solution — coding solutions are in each difficulty's `solutions/` subpackage; LLD katas have a `SOLUTION.md` (read after you attempt).
 4. **Review** on a spaced schedule (redo days/weeks later).
 
 ## Conventions

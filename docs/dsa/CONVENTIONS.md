@@ -28,7 +28,7 @@ Each data structure, algorithm, and coding problem is its own `.java` file named
 - The public method body is `throw new UnsupportedOperationException("implement me")`.
 - Sibling test holds official + edge cases. **You implement until green.** A fresh, unsolved
   practice test is marked `@Disabled("start me")` so the build stays green; remove it when you begin.
-- Reference solutions are added **on request**, after you attempt (sibling `*_Solution.java`).
+- Reference solutions live in the `solutions/` subpackage next to each problem (read after you attempt).
 
 ## Complexity annotations
 Always state **time and space**, amortized vs. worst-case where they differ (mark amortized `*`
