@@ -23,16 +23,17 @@ npm install         # per app (node_modules is git-ignored)
 npm run dev
 ```
 
-## ssr-tanstack-start — scaffold via the official CLI (interactive)
+## ssr-tanstack-start — ✅ scaffolded (create-start-app)
 
-TanStack Start's starter is interactive/version-specific, so run it once yourself:
+In place: TanStack Start + Prisma + Biome. Install and run:
 
 ```powershell
-# from this web/ directory
-npm create @tanstack/start@latest ssr-tanstack-start
-# (alternative) npx create-start-app@latest ssr-tanstack-start
+cd ssr-tanstack-start
+npm install
+npm run dev
 ```
 
+Explore rendering per route (CSR / full SSR / `ssr: 'data-only'` / streaming).
 Reference: https://tanstack.com/start/latest/docs/framework/react/guide/selective-ssr
 
 ## How to use this for practice

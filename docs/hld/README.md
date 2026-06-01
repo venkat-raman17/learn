@@ -24,10 +24,13 @@ system design**, plus the topics that became table-stakes in 2026. Hands-on prac
 - [ ] **Multi-region** (geo routing, replication, failover)
 - [ ] **Observability & cost** (metrics/logs/traces, cost-per-request as a rubric item)
 
-## Case studies — *filled in Phase 4*
-- [ ] URL shortener · [ ] News feed · [ ] Chat/WhatsApp · [ ] Rideshare/Uber · [ ] Video streaming
-- [ ] Drive/Dropbox · [ ] Typeahead/autocomplete · [ ] Distributed message queue · [ ] Unique ID generator
-- [ ] Distributed rate limiter · [ ] Web crawler · [ ] Ad-click aggregator
+## Case studies — ✅ written in [`case-studies/`](case-studies/)
+Worked designs following the framework; each opens with a try-it-yourself prompt, then applies
+requirements → estimates → API → data model → architecture → deep dives → bottlenecks → trade-offs.
+- [URL shortener](case-studies/url-shortener.md) · [News feed](case-studies/news-feed.md) · [Chat](case-studies/chat.md) · [Rideshare](case-studies/rideshare.md)
+- [Video streaming](case-studies/video-streaming.md) · [File storage (Drive/Dropbox)](case-studies/file-storage.md) · [Typeahead](case-studies/typeahead.md)
+- [Distributed message queue](case-studies/distributed-message-queue.md) · [Unique ID generator](case-studies/unique-id-generator.md) · [Distributed rate limiter](case-studies/distributed-rate-limiter.md)
+- [Web crawler](case-studies/web-crawler.md) · [Ad-click aggregator](case-studies/ad-click-aggregator.md)
 
 ## Frontend system design — *filled in Phase 4*
 - [ ] Rendering strategies: CSR, SSR, SSG, ISR, streaming SSR, RSC, Partial Prerendering, islands

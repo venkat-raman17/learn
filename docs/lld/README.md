@@ -10,16 +10,19 @@ boundaries — for **backend (Java)** and **frontend (React)**. Code practice li
 - [x] [`framework.md`](framework.md) — the 7-step LLD interview framework (requirements → entities → diagram → APIs → patterns → concurrency → extensibility)
 - [x] [`design-patterns.md`](design-patterns.md) — creational / structural / behavioral catalog, the interview core (Strategy, Factory, Observer, State, Decorator, Builder…) mapped to SOLID
 
-## Practice problems
-**Backend (Java, in `backend-service`):**
-- [ ] Parking Lot · [ ] Rate Limiter · [ ] LRU/LFU Cache · [ ] Splitwise · [ ] Elevator
-- [ ] Vending Machine · [ ] Notification Service · [ ] Logger/Logging framework · [ ] Tic-Tac-Toe / Chess
+## Practice problems — ✅ scaffolded (practice-first)
+**Backend (Java)** in `backend-service/src/main/java/com/venkat/backend/lld/<problem>/` — each has a
+`package-info.java` spec, a stubbed API skeleton (methods throw `UnsupportedOperationException`),
+and a `@Disabled` JUnit test that defines "done". Design the internals, implement, delete
+`@Disabled`, make it pass.
+- [ ] parkinglot · [ ] ratelimiter · [ ] cache (LRU/LFU) · [ ] vendingmachine · [ ] elevator
+- [ ] splitwise · [ ] notification · [ ] logger  *(tic-tac-toe / chess: future add)*
 
-**UI (React, in `web/spa-react-vite`):**
-- [ ] Reusable Data Table (sort/filter/paginate/virtualize) · [ ] Autocomplete / Typeahead
-- [ ] Design-system component (variants/states/a11y) · [ ] Modal/Toast/Notification system
+**UI (React)** in `web/spa-react-vite/src/lld/<problem>/` — each has a `README.md` spec and a
+typed starter component stub. Implement the component.
+- [ ] data-table · [ ] autocomplete · [ ] button (design system) · [ ] toast/notification
 
-Each problem: a short spec + a failing test/checklist → you implement → reference solution on request.
+Reference solutions on request, after you attempt.
 
 ## Why this matters at Staff level
 LLD shows you can model a domain, pick patterns deliberately (not cargo-cult), reason about

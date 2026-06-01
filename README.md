@@ -13,12 +13,12 @@ which project and file to open first. Track progress in [`PROGRESS.md`](PROGRESS
 | Folder | Stack | Purpose | Status |
 | --- | --- | --- | --- |
 | [`dsa-java/`](dsa-java/) | Java 21, Maven, JUnit 5 | Data structures (reference) + coding (NeetCode 150) | ✅ Phase 1 (29 impls, 790 tests) · ✅ Phase 2 (150 stubs ready) |
-| `backend-service/` | Spring Boot 4.0.6, Spring Kafka, JPA | Backend LLD/HLD, event-driven, DB design | 🟡 scaffold (builds) |
-| [`web/`](web/README.md) | React: Vite SPA · TanStack Start · Next.js · React Router 7 · Astro | Frontend LLD/HLD — compare rendering paradigms (CSR / SSR / RSC / islands) | ✅ builds green (TanStack = CLI step) |
+| `backend-service/` | Spring Boot 4.0.6, Spring Kafka, JPA | Backend LLD/HLD, event-driven, DB design | 🟡 builds green · 8 LLD katas ready |
+| [`web/`](web/README.md) | React: Vite SPA · TanStack Start · Next.js · React Router 7 · Astro | Frontend LLD/HLD — compare rendering paradigms (CSR / SSR / RSC / islands) | ✅ all 5 scaffolded (4 builds verified) |
 | `expo-app/` | Expo / React Native | Native (iOS/Android) **and** web from one codebase | ✅ web build green |
 | `agentic-python/` | Python 3.12+, uv, Claude Agent SDK | Modern AI-systems / agentic design | 🟡 scaffold |
 | `infra/` | Docker Compose | Postgres, Redis, Kafka (KRaft) for hands-on HLD | 🟡 ready |
-| [`docs/`](docs/) | Markdown | Study knowledge base (DSA, LLD, HLD, behavioral, process) | 🟡 outlines |
+| [`docs/`](docs/) | Markdown | Study knowledge base (DSA, LLD, HLD, behavioral, process) | 🟡 DSA + LLD/HLD foundations + 12 HLD case studies; behavioral/process outlined |
 
 Status: ✅ done · 🟡 in progress · ⬜ planned.
 
