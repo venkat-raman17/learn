@@ -3,7 +3,10 @@ package com.venkat.backend.lld.observability;
 import com.venkat.backend.lld.observability.ObservabilityModels.CompletedSpan;
 import com.venkat.backend.lld.observability.ObservabilityModels.Span;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.List;
 import java.util.Map;
@@ -166,5 +169,27 @@ class ObservabilityTest {
     void getTrace_unknownId_returnsEmpty() {
         TracingService tracing = new TracingService();
         assertTrue(tracing.getTrace("nope").isEmpty());
+    }
+
+    // ── @Nested grouping + @ParameterizedTest (data-driven test type) ──
+
+    @Nested
+    class HistogramPercentiles {
+
+        @ParameterizedTest(name = "p{0} of 1..100 -> {1}")
+        @CsvSource({
+                "25, 25.0",
+                "50, 50.0",
+                "90, 90.0",
+                "99, 99.0",
+                "100, 100.0",
+        })
+        void nearestRank_overUniformDistribution(double p, double expected) {
+            Histogram h = new Histogram();
+            for (int v = 1; v <= 100; v++) {
+                h.record(v);
+            }
+            assertEquals(expected, h.percentile(p));
+        }
     }
 }
