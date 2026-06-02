@@ -5,6 +5,9 @@ import { Button } from './lld/button/Button'
 import { Autocomplete, type Item } from './lld/autocomplete/Autocomplete'
 import DataTable, { type ColumnDef } from './lld/data-table/DataTable'
 import { ToastProvider, useToast } from './lld/toast/ToastProvider'
+import { ObservabilityProvider, useObservability } from './observability/ObservabilityProvider'
+import { ErrorBoundary } from './observability/ErrorBoundary'
+import { ObservabilityPanel } from './observability/ObservabilityPanel'
 
 // ---------------------------------------------------------------------------
 // Demo data
@@ -74,13 +77,14 @@ const EMPLOYEE_COLS: ColumnDef<Employee>[] = [
 // Tab definitions
 // ---------------------------------------------------------------------------
 
-type TabId = 'button' | 'autocomplete' | 'datatable' | 'toast'
+type TabId = 'button' | 'autocomplete' | 'datatable' | 'toast' | 'observability'
 
 const TABS: { id: TabId; label: string }[] = [
-  { id: 'button',       label: 'Button' },
-  { id: 'autocomplete', label: 'Autocomplete' },
-  { id: 'datatable',    label: 'DataTable' },
-  { id: 'toast',        label: 'Toast' },
+  { id: 'button',        label: 'Button' },
+  { id: 'autocomplete',  label: 'Autocomplete' },
+  { id: 'datatable',     label: 'DataTable' },
+  { id: 'toast',         label: 'Toast' },
+  { id: 'observability', label: 'Observability' },
 ]
 
 // ---------------------------------------------------------------------------
@@ -293,8 +297,14 @@ function ToastDemoInner() {
 // Root app
 // ---------------------------------------------------------------------------
 
-function App() {
+function AppInner() {
   const [activeTab, setActiveTab] = useState<TabId>('button')
+  const { pageView } = useObservability()
+
+  const selectTab = (id: TabId) => {
+    setActiveTab(id)
+    pageView(`/${id}`) // SPA "navigation" — analytics page_view per tab
+  }
 
   return (
     <ToastProvider position="top-right" maxVisible={3}>
@@ -314,7 +324,7 @@ function App() {
               aria-controls={`panel-${tab.id}`}
               id={`tab-${tab.id}`}
               className={`tab-btn${activeTab === tab.id ? ' tab-btn--active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => selectTab(tab.id)}
             >
               {tab.label}
             </button>
@@ -326,13 +336,26 @@ function App() {
           role="tabpanel"
           aria-labelledby={`tab-${activeTab}`}
         >
-          {activeTab === 'button'       && <ButtonDemo />}
-          {activeTab === 'autocomplete' && <AutocompleteDemo />}
-          {activeTab === 'datatable'    && <DataTableDemo />}
-          {activeTab === 'toast'        && <ToastDemoInner />}
+          {activeTab === 'button'        && <ButtonDemo />}
+          {activeTab === 'autocomplete'  && <AutocompleteDemo />}
+          {activeTab === 'datatable'     && <DataTableDemo />}
+          {activeTab === 'toast'         && <ToastDemoInner />}
+          {activeTab === 'observability' && <ObservabilityPanel />}
         </main>
       </div>
     </ToastProvider>
+  )
+}
+
+// Providers wrap the app: ErrorBoundary catches render crashes app-wide; ObservabilityProvider
+// installs global error/vitals capture and exposes the analytics API.
+function App() {
+  return (
+    <ObservabilityProvider>
+      <ErrorBoundary>
+        <AppInner />
+      </ErrorBoundary>
+    </ObservabilityProvider>
   )
 }
 
