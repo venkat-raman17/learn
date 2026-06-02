@@ -56,6 +56,7 @@ export function ObservabilityProvider({ children }: { children: ReactNode }) {
 }
 
 /** Actions hook — track events / capture exceptions from any component. */
+// eslint-disable-next-line react-refresh/only-export-components -- hook co-located with its provider by design
 export function useObservability(): ObservabilityApi {
   const api = useContext(ObservabilityContext);
   if (!api) throw new Error('useObservability must be used within <ObservabilityProvider>');
@@ -66,6 +67,7 @@ export function useObservability(): ObservabilityApi {
  * Live read of the buffered signals for UI. Re-renders only when the sink changes, via the sink's
  * monotonic {@link MemorySink#version} as the snapshot key.
  */
+// eslint-disable-next-line react-refresh/only-export-components -- hook co-located with its provider by design
 export function useObservabilitySnapshot(source: MemorySink = sink) {
   useSyncExternalStore(
     (onChange) => source.subscribe(onChange),

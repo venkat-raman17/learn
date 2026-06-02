@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@apollo/client';
+import { useQuery, useMutation, Reference } from '@apollo/client';
 import { GET_ARTICLES, DELETE_ARTICLE } from '../graphql/queries';
 
 interface Article {
@@ -19,7 +19,7 @@ export function ArticleList() {
       if (!mutData?.deleteArticle) return;
       cache.modify({
         fields: {
-          articles(existing: Article[] = [], { readField }) {
+          articles(existing: readonly Reference[] = [], { readField }) {
             return existing.filter(ref => readField('id', ref) !== variables?.id);
           },
         },

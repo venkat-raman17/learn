@@ -87,9 +87,11 @@ function DataTable<T>(props: DataTableProps<T>): React.ReactElement {
     ? controlledSelectedRows
     : internalSelectedRows;
 
-  // Reset to page 1 when data or sort changes
+  // Reset to page 1 when data or sort changes.
+  // setState inside useEffect is intentional here: resetting pagination on external prop change
+  // is a documented React pattern (react.dev/learn/you-might-not-need-an-effect).
   useEffect(() => {
-    setCurrentPage(1);
+    setCurrentPage(1); // eslint-disable-line react-hooks/set-state-in-effect
   }, [data, effectiveSortState]);
 
   // Sorted rows

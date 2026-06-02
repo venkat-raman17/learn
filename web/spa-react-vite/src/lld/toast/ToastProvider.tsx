@@ -75,6 +75,7 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 // Hook
 // ---------------------------------------------------------------------------
 
+// eslint-disable-next-line react-refresh/only-export-components -- hook co-located with its provider by design
 export function useToast(): ToastContextValue {
   const ctx = useContext(ToastContext);
   if (ctx === null) {

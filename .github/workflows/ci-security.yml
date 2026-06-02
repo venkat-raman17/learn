@@ -64,13 +64,13 @@ jobs:
         working-directory: mcp-server-py
         run: |
           uv sync
-          uv run pip-audit --fix --dry-run || uv run pip-audit
+          uvx pip-audit
 
       - name: pip-audit — agentic-python
         working-directory: agentic-python
         run: |
           uv sync
-          uv run pip-audit --fix --dry-run || uv run pip-audit
+          uvx pip-audit
 
       # Ruff includes Bandit-equivalent security rules (S-prefix).
       - name: Ruff security rules — mcp-server-py
@@ -167,7 +167,10 @@ jobs:
 
       - name: Build (Java only)
         if: matrix.language == 'java-kotlin'
-        run: ./mvnw compile -B -pl backend-service,dsa-java
+        # Separate builds — these are standalone Maven projects, not a multi-module reactor.
+        run: |
+          cd backend-service && ./mvnw compile -B
+          cd ../dsa-java      && ./mvnw compile -B
 
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@v3
