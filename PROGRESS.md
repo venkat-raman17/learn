@@ -129,10 +129,13 @@ go. Legend: `[ ]` todo · `[~]` in progress · `[x]` done.
 
 **Hands-on**
 
-- [ ] infra up (Postgres / Redis / Kafka)
+- [x] infra up (Postgres / Redis / Kafka / MongoDB / Elasticsearch — `infra/docker-compose.yml`)
 - [ ] event-driven slice (producer / consumer / DLQ)
-- [ ] rendering demos
-- [ ] agentic demo
+- [x] rendering demos (5 React paradigms in `web/`, Expo native+web)
+- [x] agentic demo (Corrective RAG + MCP server in `agentic-python/` + `mcp-server-py/`)
+- [x] observability demo (backend ops layer + frontend analytics/crash/vitals)
+- [x] SQL + NoSQL demo (R2DBC Postgres + MongoDB Reactive in `backend-service`)
+- [x] GraphQL layer (Apollo Server 4 + Apollo Client 3 in `graphql-layer/`)
 
 ## Phase 5 — Behavioral & process
 
