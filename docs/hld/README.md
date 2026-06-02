@@ -37,6 +37,11 @@ requirements → estimates → API → data model → architecture → deep dive
 - [ ] Data fetching & caching (SWR/React Query, ISR, edge), state at scale
 - [ ] Performance (Core Web Vitals, bundling, code-splitting), accessibility as architecture, micro-frontends
 
+## Front-end observability — ✅ [`frontend-observability.md`](frontend-observability.md)
+- [ ] Analytics (product + RUM), error/crash reporting, Core Web Vitals; the vendor-agnostic seam
+- [ ] Trace propagation into the browser (W3C `traceparent`), session replay, privacy/consent, mobile crashlytics
+- Worked samples: [`web/spa-react-vite/src/observability/`](../../web/spa-react-vite/src/observability/) (web) · [`expo-app/src/observability/`](../../expo-app/src/observability/) (mobile)
+
 ## Resources
 - **Designing Data-Intensive Applications, 2e (2026)** — the distributed-systems bible
 - [ByteByteGo](https://bytebytego.com/) (visual breadth) · [Hello Interview](https://www.hellointerview.com/) (mock practice) · [DesignGurus](https://www.designgurus.io/) (2026 LLM/agentic guides)

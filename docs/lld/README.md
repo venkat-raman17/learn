@@ -9,6 +9,7 @@ boundaries — for **backend (Java)** and **frontend (React)**. Code practice li
 - [x] [`solid.md`](solid.md) — SOLID with Java examples and the smell that signals each violation
 - [x] [`framework.md`](framework.md) — the 7-step LLD interview framework (requirements → entities → diagram → APIs → patterns → concurrency → extensibility)
 - [x] [`design-patterns.md`](design-patterns.md) — creational / structural / behavioral catalog, the interview core (Strategy, Factory, Observer, State, Decorator, Builder…) mapped to SOLID
+- [x] [`testing-strategy.md`](testing-strategy.md) — test types across the stack (unit/component/integration/contract/e2e/visual/property/mutation/load), the pyramid vs trophy, and what this repo demonstrates by sample vs theory
 
 ## Practice problems — ✅ scaffolded (practice-first)
 **Backend (Java)** in `backend-service/src/main/java/com/venkat/backend/lld/<problem>/` — each has a
