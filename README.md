@@ -20,7 +20,8 @@ the [cheat sheets](docs/cheatsheets/), and the [self-grading rubrics](docs/rubri
 | `backend-service/` | Spring Boot 4.0.6, Spring Kafka, JPA | Backend LLD/HLD, event-driven, DB design | 🟡 builds green · 8 LLD katas ready |
 | [`web/`](web/README.md) | React: Vite SPA · TanStack Start · Next.js · React Router 7 · Astro | Frontend LLD/HLD — compare rendering paradigms (CSR / SSR / RSC / islands) | ✅ all 5 scaffolded (4 builds verified) |
 | `expo-app/` | Expo / React Native | Native (iOS/Android) **and** web from one codebase | ✅ web build green |
-| `agentic-python/` | Python 3.12+, uv, Claude Agent SDK | Modern AI-systems / agentic design | 🟡 scaffold |
+| [`agentic-python/`](agentic-python/) | Python 3.11+, uv, LangGraph | Modern AI-systems / agentic — **Corrective RAG over MCP** (keyless, swappable to Claude) | ✅ graph + MCP client · 10 tests |
+| [`mcp-server-py/`](mcp-server-py/) | Python 3.11+, uv, MCP SDK | **MCP server** exposing a from-scratch RAG knowledge base (TF-IDF + cosine) | ✅ tools + stdio · 7 tests |
 | `infra/` | Docker Compose | Postgres, Redis, Kafka (KRaft) for hands-on HLD | 🟡 ready |
 | [`docs/`](docs/) | Markdown | Study knowledge base (DSA, LLD, HLD, behavioral, process) + mock kit | ✅ complete — LLD/HLD (+12 cases), behavioral/process (11), 18 pattern notes, cheat sheets, study guide, rubrics, mock-interview kit |
 | [`capstone/`](capstone/) | Full-stack build | Phase 6 capstone — build *TinyLink* (URL shortener + real-time analytics) across the stack | ✅ blueprint (spec + reference design) |
@@ -32,7 +33,7 @@ Status: ✅ done · 🟡 in progress · ⬜ planned.
 1. **DSA foundations** — data-structure reference impls (`dsa-java`)
 2. **Coding patterns** — NeetCode 150 by pattern & difficulty (`dsa-java`)
 3. **LLD** — OOP/SOLID/patterns + problems, backend (`backend-service`) **and** UI (`web`)
-4. **HLD** — system design + frontend rendering + event-driven (`backend-service`, `infra`, `web`, `agentic-python`)
+4. **HLD** — system design + frontend rendering + event-driven + agentic RAG/MCP (`backend-service`, `infra`, `web`, `agentic-python`, `mcp-server-py`)
 5. **Behavioral & process** — Staff bar, story bank, recruiter→offer (`docs`)
 6. **Mock & capstone** — self-run mock kit (`docs/mock-interviews/`) + build the `capstone/`
 

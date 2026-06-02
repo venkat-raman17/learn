@@ -1,21 +1,32 @@
 [project]
 name = "agentic-python"
 version = "0.1.0"
-description = "Agentic workflow practice app — Claude Agent SDK (modern AI-systems track)"
-requires-python = ">=3.12"
+description = "Agentic Corrective-RAG over MCP (LangGraph) — modern AI-systems track"
+requires-python = ">=3.11"
 dependencies = [
-    "claude-agent-sdk",
+    "langgraph>=0.2",
+    "mcp>=1.2",
+    "mcp-knowledge-server",
 ]
+
+[project.optional-dependencies]
+# Swap the deterministic FakeLLM for real Claude: `uv sync --extra claude` + ANTHROPIC_API_KEY.
+claude = ["anthropic>=0.40"]
 
 [dependency-groups]
 dev = [
     "pytest>=8.0",
+    "pytest-asyncio>=0.24",
     "ruff>=0.6",
 ]
 
+# Path dependency on the sibling MCP server (monorepo) — makes the client->server flow real.
+[tool.uv.sources]
+mcp-knowledge-server = { path = "../mcp-server-py", editable = true }
+
 [tool.ruff]
 line-length = 100
-target-version = "py312"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
@@ -23,6 +34,7 @@ select = ["E", "F", "I", "B", "UP"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+asyncio_mode = "auto"
 
 [build-system]
 requires = ["hatchling"]
