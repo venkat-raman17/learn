@@ -1,0 +1,67 @@
+---
+/**
+ * CONCEPT: Content Collections — querying at build time
+ *
+ * getCollection('blog') reads all Markdown files in src/content/blog/.
+ * Frontmatter is validated against the Zod schema in src/content/config.ts.
+ * Accessing post.data.nonExistentField is a TypeScript compile error — fully typed.
+ *
+ * In production: this runs at build time (SSG) → zero runtime cost.
+ * In dev: re-runs on each request for instant content updates.
+ */
+import { getCollection } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+// In Astro v6, entries use .id (the file path without extension) instead of .slug
+
+const posts = await getCollection("blog");
+// Sort newest-first
+posts.sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime());
+---
+
+<Layout title="Blog — Astro Content Collections" description="Type-safe Markdown posts via Content Collections">
+  <h1>Blog</h1>
+  <p style="color: #555; margin-bottom: 1.5rem;">
+    Posts are Markdown files in <code>src/content/blog/</code>. The schema is
+    defined in <code>src/content/config.ts</code> using Zod — TypeScript catches
+    missing or malformed frontmatter at build time.
+  </p>
+
+  <div style="display: grid; gap: 1rem;">
+    {
+      posts.map((post) => (
+        <a
+          href={`/blog/${post.id}`}
+          style="border: 1px solid #e0e0e0; border-radius: 10px; padding: 1.25rem 1.5rem; text-decoration: none; color: inherit; display: block;"
+        >
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+            <div>
+              <h2 style="margin: 0 0 0.4rem; font-size: 1.1rem;">{post.data.title}</h2>
+              <p style="margin: 0; color: #555; font-size: 0.9rem;">{post.data.description}</p>
+              <div style="margin-top: 0.5rem; display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                {post.data.tags.map((tag: string) => (
+                  <span style="background: #f0f4ff; color: #0055aa; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <time
+              datetime={post.data.date}
+              style="color: #888; font-size: 0.8rem; white-space: nowrap; flex-shrink: 0;"
+            >
+              {new Date(post.data.date).toLocaleDateString("en-US", { dateStyle: "medium" })}
+            </time>
+          </div>
+        </a>
+      ))
+    }
+  </div>
+
+  <aside
+    style="margin-top: 2rem; background: #f8f9fb; border-left: 4px solid #8b5cf6; border-radius: 0 8px 8px 0; padding: 1rem 1.25rem; font-size: 0.85rem; color: #555;"
+  >
+    <strong>CMS swap:</strong> Replace <code>getCollection('blog')</code> with
+    a Contentful or Sanity fetch — the template is identical. The data contract
+    is just a typed object with <code>title</code>, <code>description</code>, etc.
+  </aside>
+</Layout>
