@@ -4,6 +4,20 @@ spring:
   # Graceful shutdown: stop accepting new requests, let in-flight ones finish (up to the timeout).
   lifecycle:
     timeout-per-shutdown-phase: 20s
+  # Disable infra-dependent auto-configs by default so the app/tests start without Docker.
+  # Spring Boot 4.x moved these to per-module packages (org.springframework.boot.r2dbc.*,
+  # org.springframework.boot.mongodb.*, org.springframework.boot.data.*).
+  # The `datastore` profile re-enables them (see application-datastore.yaml).
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.r2dbc.autoconfigure.R2dbcAutoConfiguration
+      - org.springframework.boot.r2dbc.autoconfigure.R2dbcTransactionManagerAutoConfiguration
+      - org.springframework.boot.r2dbc.autoconfigure.R2dbcInitializationAutoConfiguration
+      - org.springframework.boot.data.r2dbc.autoconfigure.DataR2dbcAutoConfiguration
+      - org.springframework.boot.data.r2dbc.autoconfigure.DataR2dbcRepositoriesAutoConfiguration
+      - org.springframework.boot.mongodb.autoconfigure.MongoReactiveAutoConfiguration
+      - org.springframework.boot.data.mongodb.autoconfigure.DataMongoReactiveAutoConfiguration
+      - org.springframework.boot.data.mongodb.autoconfigure.DataMongoReactiveRepositoriesAutoConfiguration
 
 server:
   shutdown: graceful
