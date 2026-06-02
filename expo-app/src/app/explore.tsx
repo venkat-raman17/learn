@@ -19,6 +19,7 @@
  * This screen demonstrates all three patterns.
  */
 
+import { Link } from 'expo-router';
 import {
   Platform,
   ScrollView,
@@ -213,10 +214,16 @@ export default function ExploreScreen() {
           <ThemedText
             type="small"
             themeColor="textSecondary"
-            style={{ paddingHorizontal: Spacing.three, marginTop: Spacing.one, marginBottom: Spacing.four }}
+            style={{ paddingHorizontal: Spacing.three, marginTop: Spacing.one, marginBottom: Spacing.three }}
           >
             Three ways to write platform-specific code in React Native.
           </ThemedText>
+
+          <Link href="/observability" style={{ paddingHorizontal: Spacing.three, marginBottom: Spacing.four }}>
+            <ThemedText type="smallBold" style={{ color: '#3b82f6' }}>
+              → Open Observability demo (analytics + crash reporting)
+            </ThemedText>
+          </Link>
 
           <View style={{ gap: Spacing.four, paddingHorizontal: Spacing.three }}>
             {sections.map((section) => (
