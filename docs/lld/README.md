@@ -7,6 +7,7 @@ boundaries — for **backend (Java)** and **frontend (React)**. Code practice li
 ## Foundations (read first) — ✅ written
 - [x] [`oop-refresher.md`](oop-refresher.md) — the four pillars, composition over inheritance, interface vs abstract, coupling/cohesion, UML
 - [x] [`solid.md`](solid.md) — SOLID with Java examples and the smell that signals each violation
+- [x] [`coding-principles.md`](coding-principles.md) — DRY · KISS · YAGNI · Fail-Fast · Immutability · Law of Demeter · CQS · Tell-Don't-Ask · Defensive Programming · SSOT · Design by Contract — each with examples from this repo's own code
 - [x] [`framework.md`](framework.md) — the 7-step LLD interview framework (requirements → entities → diagram → APIs → patterns → concurrency → extensibility)
 - [x] [`design-patterns.md`](design-patterns.md) — creational / structural / behavioral catalog, the interview core (Strategy, Factory, Observer, State, Decorator, Builder…) mapped to SOLID
 - [x] [`testing-strategy.md`](testing-strategy.md) — test types across the stack (unit/component/integration/contract/e2e/visual/property/mutation/load), the pyramid vs trophy, and what this repo demonstrates by sample vs theory
