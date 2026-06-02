@@ -73,13 +73,14 @@ jobs:
           uvx pip-audit
 
       # Ruff includes Bandit-equivalent security rules (S-prefix).
+      # S101 (use of assert) is excluded: assert is the standard pytest assertion idiom.
       - name: Ruff security rules — mcp-server-py
         working-directory: mcp-server-py
-        run: uv run ruff check --select=S .
+        run: uv run ruff check --select=S --ignore=S101 .
 
       - name: Ruff security rules — agentic-python
         working-directory: agentic-python
-        run: uv run ruff check --select=S .
+        run: uv run ruff check --select=S --ignore=S101 .
 
   # ── OWASP Dependency-Check — Java CVE scan ────────────────────────────────────
   owasp-java:
