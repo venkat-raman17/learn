@@ -19,7 +19,6 @@ import static org.junit.jupiter.api.Assertions.*;
  * Remove the {@code @Disabled} annotation only after you have fully implemented
  * the class. Do NOT modify the test logic; only the implementation classes change.
  */
-@Disabled("LLD practice — implement, then remove")
 class ExpenseManagerTest {
 
     private ExpenseManager mgr;

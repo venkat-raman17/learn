@@ -37,6 +37,31 @@ requirements → estimates → API → data model → architecture → deep dive
 - [ ] Data fetching & caching (SWR/React Query, ISR, edge), state at scale
 - [ ] Performance (Core Web Vitals, bundling, code-splitting), accessibility as architecture, micro-frontends
 
+## Front-end observability — ✅ [`frontend-observability.md`](frontend-observability.md)
+- [ ] Analytics (product + RUM), error/crash reporting, Core Web Vitals; the vendor-agnostic seam
+- [ ] Trace propagation into the browser (W3C `traceparent`), session replay, privacy/consent, mobile crashlytics
+- Worked samples: [`web/spa-react-vite/src/observability/`](../../web/spa-react-vite/src/observability/) (web) · [`expo-app/src/observability/`](../../expo-app/src/observability/) (mobile)
+
+## Databases & search — ✅ written
+- [x] [`databases.md`](databases.md) — SQL vs NoSQL decision matrix, R2DBC vs JDBC, MongoDB reactive patterns, CAP theorem, schema management, interview talking points
+- [x] [`elasticsearch.md`](elasticsearch.md) — inverted index, BM25 ranking, kNN vector search, hybrid search (BM25 + kNN), Spring Data ES wiring, when to choose ES vs Postgres FTS vs Pinecone
+
+## Security — ✅ [`security.md`](security.md)
+- [ ] OWASP Top 10 (2021): Broken Access Control, Cryptographic Failures, Injection, Insecure Design, Security Misconfiguration, Vulnerable Components, Auth Failures, Integrity Failures, Logging Failures, SSRF
+- [ ] OWASP API Security Top 10 (2023) quick-reference
+- [ ] Frontend-specific: XSS (stored/reflected/DOM), CSRF, clickjacking, open redirect, localStorage vs HttpOnly cookies
+- [ ] Spring Boot security: CORS config, security headers, JWT pitfalls, actuator exposure
+- [ ] Secrets management, security headers cheat sheet, threat modelling (STRIDE)
+- Worked examples from this repo's own code (TokenService, R2DBC parameterised queries, MemorySink, WebFilter)
+
+## CI/CD — ✅ [`cicd.md`](cicd.md)
+- [ ] CI vs CD vs Continuous Deployment; GitHub Actions anatomy (workflow / job / step / runner)
+- [ ] Path filtering, caching, matrix builds, concurrency groups, fail-fast
+- [ ] Docker service containers for integration tests; multi-stage Dockerfile
+- [ ] Deployment strategies: blue-green, canary, rolling update, feature flags
+- [ ] GitOps, DORA metrics, CI/CD security (pinned SHAs, minimum permissions, secrets hygiene)
+- Working workflows: [`.github/workflows/`](../../../.github/workflows/) — 4 workflows covering Java, Python, Web, and security scans
+
 ## Resources
 - **Designing Data-Intensive Applications, 2e (2026)** — the distributed-systems bible
 - [ByteByteGo](https://bytebytego.com/) (visual breadth) · [Hello Interview](https://www.hellointerview.com/) (mock practice) · [DesignGurus](https://www.designgurus.io/) (2026 LLM/agentic guides)

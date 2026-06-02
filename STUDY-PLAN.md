@@ -82,19 +82,25 @@ leave stories to the end.
   yourself with [`docs/rubrics.md`](docs/rubrics.md).
 - **Resources:** *Head First Design Patterns*, refactoring.guru.
 
-### Phase 4 — High-Level Design (Weeks 7–10) · `backend-service` + `infra` + `web/ssr-tanstack-start` + `agentic-python`
+### Phase 4 — High-Level Design (Weeks 7–10) · `backend-service` + `infra` + `web/` + `agentic-python` + `graphql-layer`
 - **Goal:** drive a system-design round end to end — requirements → estimates → API → data model
   → architecture → deep dives → bottlenecks → trade-offs — for **backend and frontend**.
 - **Read:** `docs/hld/` — the framework, core concepts (scaling, caching, sharding, replication,
   CAP/PACELC, queues/Kafka, consistent hashing) **and the 2026 must-knows**: vector DBs/RAG, LLM
   & agentic system design, idempotency, multi-region, observability & cost-per-request.
+  Also: [`databases.md`](docs/hld/databases.md) (SQL vs NoSQL, R2DBC vs JDBC),
+  [`elasticsearch.md`](docs/hld/elasticsearch.md) (full-text + vector search, BM25, hybrid),
+  [`frontend-observability.md`](docs/hld/frontend-observability.md) (analytics, Core Web Vitals, crash reporting).
 - **Study:** the **12 worked case studies** in [`docs/hld/case-studies/`](docs/hld/case-studies/) —
   read each prompt, design it on paper first, then compare against the worked solution and grade with the rubric.
-- **Hands-on:** bring up `infra` (Postgres/Redis/Kafka KRaft) and build a small event-driven slice
-  in `backend-service` (producer/consumer + DLQ + tracing). Compare rendering strategies by building
-  one feature across the `web/` apps — TanStack Start (client-first), Next.js (RSC-first), React
-  Router 7 (loader/action), Astro (islands) — plus `expo-app` for native + web. Use `agentic-python`
-  to reason about LLM/agentic systems.
+- **Hands-on:**
+  - **Infra:** bring up `infra/` (Postgres · Redis · Kafka · MongoDB · Elasticsearch) — `docker compose up -d`.
+  - **SQL + NoSQL:** explore `backend-service` with `--spring.profiles.active=datastore` — live CRUD over R2DBC (Postgres) and MongoDB Reactive, side-by-side.
+  - **Observability:** run `backend-service` and hit `/actuator/health`, `/actuator/prometheus`, `/api/ops/work` — see Micrometer + custom kata metrics live.
+  - **Event-driven:** build a small producer/consumer + DLQ slice in `backend-service` (Kafka is wired in `infra/`).
+  - **Rendering:** compare paradigms across the `web/` apps (TanStack Start · Next.js · React Router 7 · Astro · Expo) — CSR / SSR / RSC / islands / native.
+  - **Agentic / RAG:** run `agentic-python` end-to-end — LangGraph Corrective-RAG state machine → MCP client → `mcp-server-py` (TF-IDF retrieval). Swap in Claude with one env var.
+  - **GraphQL:** start `graphql-layer/server` and `graphql-layer/client` — explore the Apollo Sandbox, trace cache normalisation in DevTools, add a subscription (see README).
 - **Resources:** **Designing Data-Intensive Applications, 2e (2026)**,
   [ByteByteGo](https://bytebytego.com/), [Hello Interview](https://www.hellointerview.com/),
   [DesignGurus](https://www.designgurus.io/). Frontend:

@@ -1,0 +1,179 @@
+name: Security Scans
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # Weekly scheduled scan so new CVEs are caught even without code changes.
+  schedule:
+    - cron: "0 6 * * 1"   # every Monday 06:00 UTC
+
+concurrency:
+  group: ci-security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── npm audit — dependency CVEs across all Node projects ────────────────────
+  npm-audit:
+    name: npm audit (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - web/spa-react-vite
+          - web/nextjs-app
+          - web/react-router-app
+          - web/astro-app
+          - graphql-layer/server
+          - graphql-layer/client
+          - expo-app
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ matrix.project }}/package-lock.json
+
+      - name: Install
+        run: npm ci
+        working-directory: ${{ matrix.project }}
+
+      # --audit-level=high: fail only on high/critical; moderate issues reported but don't block.
+      - name: Audit
+        run: npm audit --audit-level=high
+        working-directory: ${{ matrix.project }}
+
+  # ── Python security — pip-audit + Ruff security rules ────────────────────────
+  python-security:
+    name: Python security scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+
+      - name: pip-audit — mcp-server-py
+        working-directory: mcp-server-py
+        run: |
+          uv sync
+          uvx pip-audit
+
+      - name: pip-audit — agentic-python
+        working-directory: agentic-python
+        run: |
+          uv sync
+          uvx pip-audit
+
+      # Ruff includes Bandit-equivalent security rules (S-prefix).
+      # S101 (use of assert) is excluded: assert is the standard pytest assertion idiom.
+      - name: Ruff security rules — mcp-server-py
+        working-directory: mcp-server-py
+        run: uv run ruff check --select=S --ignore=S101 .
+
+      - name: Ruff security rules — agentic-python
+        working-directory: agentic-python
+        run: uv run ruff check --select=S --ignore=S101 .
+
+  # ── OWASP Dependency-Check — Java CVE scan ────────────────────────────────────
+  owasp-java:
+    name: OWASP Dependency-Check (Java)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: temurin
+          cache: maven
+
+      # Cache the NVD database so weekly re-runs don't re-download 200 MB.
+      - name: Cache NVD database
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/org/owasp/dependency-check-data
+          key: owasp-nvd-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: owasp-nvd-${{ runner.os }}-
+
+      - name: Run OWASP dependency-check (backend-service)
+        working-directory: backend-service
+        run: |
+          ./mvnw org.owasp:dependency-check-maven:check \
+            -DfailBuildOnCVSS=8 \
+            -DsuppressionFile=.owasp-suppressions.xml \
+            -Dformats=HTML,JSON \
+            -B || true   # report but don't fail the build on first run
+
+      - name: Upload dependency-check report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: owasp-report
+          path: backend-service/target/dependency-check-report.*
+
+  # ── Secret scanning — Gitleaks ────────────────────────────────────────────────
+  secrets:
+    name: Secret scan (Gitleaks)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history so Gitleaks can scan all commits in the PR
+
+      - name: Gitleaks — detect hardcoded secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ── CodeQL — static analysis for JS/TS and Java ───────────────────────────────
+  codeql:
+    name: CodeQL (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [java-kotlin, javascript-typescript]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21 (for java-kotlin analysis)
+        if: matrix.language == 'java-kotlin'
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: temurin
+          cache: maven
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          # Build-mode auto for JS/TS; manual for Java so Maven compiles it.
+          build-mode: ${{ matrix.language == 'java-kotlin' && 'manual' || 'none' }}
+
+      - name: Build (Java only)
+        if: matrix.language == 'java-kotlin'
+        # Separate builds — these are standalone Maven projects, not a multi-module reactor.
+        run: |
+          cd backend-service && ./mvnw compile -B
+          cd ../dsa-java      && ./mvnw compile -B
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: /language:${{ matrix.language }}

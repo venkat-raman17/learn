@@ -16,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  *
  * <p>These tests exercise the public API only — no reflection, no internal casts.</p>
  */
-@Disabled("LLD practice — implement, then remove")
 class VendingMachineTest {
 
     private VendingMachine vm;

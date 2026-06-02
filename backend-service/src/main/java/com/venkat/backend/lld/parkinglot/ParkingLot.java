@@ -2,126 +2,64 @@ package com.venkat.backend.lld.parkinglot;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantLock;
 
 // ---------------------------------------------------------------------------
 // Enums
 // ---------------------------------------------------------------------------
 
-/** The type of vehicle requesting a parking spot. */
-enum VehicleType {
-    BIKE, CAR, TRUCK
-}
+enum VehicleType { BIKE, CAR, TRUCK }
 
-/** The physical size of a parking spot. */
-enum SpotSize {
-    SMALL, MEDIUM, LARGE
-}
+enum SpotSize { SMALL, MEDIUM, LARGE }
 
 // ---------------------------------------------------------------------------
 // Value / DTO types
 // ---------------------------------------------------------------------------
 
-/**
- * An immutable description of a vehicle.
- *
- * @param licensePlate unique plate string (non-null, non-blank)
- * @param type         the vehicle category
- */
 record Vehicle(String licensePlate, VehicleType type) {
     Vehicle {
-        if (licensePlate == null || licensePlate.isBlank()) {
+        if (licensePlate == null || licensePlate.isBlank())
             throw new IllegalArgumentException("licensePlate must not be blank");
-        }
-        if (type == null) {
-            throw new IllegalArgumentException("type must not be null");
-        }
+        if (type == null) throw new IllegalArgumentException("type must not be null");
     }
 }
 
-/**
- * Issued when a vehicle successfully parks. Carry this to {@link ParkingLot#unpark}.
- *
- * <p>Learner task: decide which fields this needs to record in order for
- * {@code unpark} to (a) locate the spot to free and (b) compute duration.
- */
-record Ticket(
-        String ticketId,
-        Vehicle vehicle,
-        int level,
-        int spotNumber,
-        SpotSize spotSize,
-        Instant entryTime
-) {
+record Ticket(String ticketId, Vehicle vehicle, int level, int spotNumber, SpotSize spotSize, Instant entryTime) {
     Ticket {
-        if (ticketId == null || ticketId.isBlank()) {
+        if (ticketId == null || ticketId.isBlank())
             throw new IllegalArgumentException("ticketId must not be blank");
-        }
-        if (vehicle == null) {
-            throw new IllegalArgumentException("vehicle must not be null");
-        }
-        if (entryTime == null) {
-            throw new IllegalArgumentException("entryTime must not be null");
-        }
+        if (vehicle == null)   throw new IllegalArgumentException("vehicle must not be null");
+        if (entryTime == null) throw new IllegalArgumentException("entryTime must not be null");
     }
 }
 
-/**
- * Returned when a vehicle exits. Summarises the parking session.
- *
- * @param ticket          the original entry ticket
- * @param exitTime        when the vehicle left
- * @param durationMinutes actual minutes parked (ceiling — partial minutes count as full)
- * @param fee             total charge in the lot's currency
- */
-record Receipt(
-        Ticket ticket,
-        Instant exitTime,
-        long durationMinutes,
-        BigDecimal fee
-) {}
+record Receipt(Ticket ticket, Instant exitTime, long durationMinutes, BigDecimal fee) {}
 
 // ---------------------------------------------------------------------------
 // Exceptions
 // ---------------------------------------------------------------------------
 
-/** Thrown by {@link ParkingLot#park} when no compatible spot is available. */
 class ParkingLotFullException extends RuntimeException {
-    public ParkingLotFullException(String message) {
-        super(message);
-    }
+    public ParkingLotFullException(String message) { super(message); }
 }
 
-/** Thrown by {@link ParkingLot#unpark} for an unknown or already-redeemed ticket. */
 class InvalidTicketException extends RuntimeException {
-    public InvalidTicketException(String message) {
-        super(message);
-    }
+    public InvalidTicketException(String message) { super(message); }
 }
 
 // ---------------------------------------------------------------------------
 // Strategy interface
 // ---------------------------------------------------------------------------
 
-/**
- * Pluggable fee calculation strategy.
- *
- * <p>Implement this to provide different pricing models (hourly flat rate,
- * surge pricing, free first 15 minutes, etc.).
- *
- * <p>Learner note: consider parameterising by {@link VehicleType} so that
- * trucks pay more than bikes.
- */
 interface PricingStrategy {
-
-    /**
-     * Calculates the parking fee.
-     *
-     * @param vehicleType     the type of the parked vehicle
-     * @param durationMinutes actual duration in minutes (already ceiling-rounded)
-     * @return non-negative fee; must not be {@code null}
-     */
     BigDecimal calculate(VehicleType vehicleType, long durationMinutes);
 }
 
@@ -129,142 +67,171 @@ interface PricingStrategy {
 // Configuration DTO
 // ---------------------------------------------------------------------------
 
-/**
- * Describes the physical layout of the lot passed to {@link ParkingLot#create}.
- *
- * <p>Example — a 2-level lot:
- * <pre>{@code
- * var floorConfigs = List.of(
- *     new FloorConfig(0, Map.of(SpotSize.SMALL, 10, SpotSize.MEDIUM, 20, SpotSize.LARGE, 5)),
- *     new FloorConfig(1, Map.of(SpotSize.SMALL, 10, SpotSize.MEDIUM, 20, SpotSize.LARGE, 5))
- * );
- * var config = new LotConfig(floorConfigs);
- * }</pre>
- *
- * @param floors ordered list of floor configurations (index 0 = ground level)
- */
 record LotConfig(java.util.List<FloorConfig> floors) {
     LotConfig {
-        if (floors == null || floors.isEmpty()) {
+        if (floors == null || floors.isEmpty())
             throw new IllegalArgumentException("At least one floor is required");
-        }
     }
 }
 
-/**
- * Configuration for a single floor.
- *
- * @param level      zero-based floor number
- * @param spotCounts map from {@link SpotSize} to the number of spots of that size on
- *                   this floor
- */
 record FloorConfig(int level, Map<SpotSize, Integer> spotCounts) {
     FloorConfig {
-        if (spotCounts == null || spotCounts.isEmpty()) {
+        if (spotCounts == null || spotCounts.isEmpty())
             throw new IllegalArgumentException("spotCounts must not be empty");
-        }
     }
 }
 
 // ---------------------------------------------------------------------------
-// Main facade — STUB ONLY, learner implements the body
+// Internal helper classes
 // ---------------------------------------------------------------------------
 
-/**
- * Entry-point facade for the parking lot system.
- *
- * <p><b>Learner tasks</b> (do not change the public signatures):
- * <ol>
- *   <li>Implement {@link #park(Vehicle)} — find the nearest free compatible spot,
- *       mark it occupied, and return a {@link Ticket}. Handle the full-lot case.</li>
- *   <li>Implement {@link #unpark(Ticket)} — validate the ticket, free the spot,
- *       compute and return the {@link Receipt}. Handle invalid/redeemed tickets.</li>
- *   <li>Implement {@link #getAvailability()} — aggregate free spots by vehicle type.</li>
- *   <li>Design the internal data structures (floors, spots, active-ticket registry).</li>
- *   <li>Ensure {@code park()} is thread-safe: two threads racing for the last spot
- *       must not both succeed.</li>
- * </ol>
- *
- * <p>You may add private fields, private methods, and inner/helper classes freely.
- * Do NOT add new public methods unless they are part of the spec.
- */
+class ParkingSpot {
+    private final int level;
+    private final int number;
+    private final SpotSize size;
+    private boolean occupied = false;
+
+    ParkingSpot(int level, int number, SpotSize size) {
+        this.level  = level;
+        this.number = number;
+        this.size   = size;
+    }
+
+    int getLevel()    { return level; }
+    int getNumber()   { return number; }
+    SpotSize getSize() { return size; }
+    boolean isOccupied() { return occupied; }
+    void setOccupied(boolean occupied) { this.occupied = occupied; }
+}
+
+// ---------------------------------------------------------------------------
+// Main facade
+// ---------------------------------------------------------------------------
+
 public class ParkingLot {
 
-    // TODO: add private fields (floors, active tickets, strategy, clock, lock …)
+    // Vehicle type → compatible spot size
+    private static final Map<VehicleType, SpotSize> TYPE_TO_SIZE = Map.of(
+        VehicleType.BIKE,  SpotSize.SMALL,
+        VehicleType.CAR,   SpotSize.MEDIUM,
+        VehicleType.TRUCK, SpotSize.LARGE
+    );
 
-    /**
-     * Private constructor — use {@link #create(LotConfig, PricingStrategy)} to
-     * obtain an instance.
-     */
+    private final List<List<ParkingSpot>> floors; // floors.get(level) → list of spots (ordered by number)
+    private final PricingStrategy strategy;
+    private final Map<String, Ticket> activeTickets = new HashMap<>(); // ticketId → Ticket
+    private final Map<String, ParkingSpot> ticketToSpot = new HashMap<>(); // ticketId → spot
+    private final ReentrantLock lock = new ReentrantLock();
+
     private ParkingLot(LotConfig config, PricingStrategy strategy) {
-        // TODO: initialise internal data structures from config; store strategy
-        throw new UnsupportedOperationException("implement me");
+        this.strategy = strategy;
+        this.floors   = new ArrayList<>();
+
+        for (FloorConfig fc : config.floors()) {
+            List<ParkingSpot> spotsOnFloor = new ArrayList<>();
+            int spotNum = 1;
+            // Enumerate sizes in a deterministic order: SMALL, MEDIUM, LARGE
+            for (SpotSize size : SpotSize.values()) {
+                int count = fc.spotCounts().getOrDefault(size, 0);
+                for (int i = 0; i < count; i++) {
+                    spotsOnFloor.add(new ParkingSpot(fc.level(), spotNum++, size));
+                }
+            }
+            floors.add(spotsOnFloor);
+        }
     }
 
-    // ---------------------------------------------------------------------------
-    // Factory method
-    // ---------------------------------------------------------------------------
-
-    /**
-     * Creates a new {@code ParkingLot} with the given layout and pricing strategy.
-     *
-     * @param config   physical layout of the lot; must not be {@code null}
-     * @param strategy fee calculation strategy; must not be {@code null}
-     * @return a fully initialised, ready-to-use {@code ParkingLot}
-     * @throws IllegalArgumentException if either argument is {@code null}
-     */
     public static ParkingLot create(LotConfig config, PricingStrategy strategy) {
-        // TODO: validate arguments, delegate to constructor
-        throw new UnsupportedOperationException("implement me");
+        Objects.requireNonNull(config,   "config must not be null");
+        Objects.requireNonNull(strategy, "strategy must not be null");
+        return new ParkingLot(config, strategy);
     }
 
-    // ---------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     // Core operations
-    // ---------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
 
-    /**
-     * Parks a vehicle in the nearest available compatible spot.
-     *
-     * <p>Nearest is defined as: lowest level first, then lowest spot number within
-     * the level. The spot size must match the vehicle type
-     * (BIKE→SMALL, CAR→MEDIUM, TRUCK→LARGE).
-     *
-     * <p>This method must be <b>thread-safe</b>: concurrent calls must not assign
-     * the same spot to two different vehicles.
-     *
-     * @param vehicle the vehicle to park; must not be {@code null}
-     * @return a {@link Ticket} capturing the assigned spot and entry time
-     * @throws ParkingLotFullException  if no compatible spot is currently free
-     * @throws IllegalArgumentException if {@code vehicle} is {@code null}
-     */
     public Ticket park(Vehicle vehicle) {
-        // TODO: implement
-        throw new UnsupportedOperationException("implement me");
+        Objects.requireNonNull(vehicle, "vehicle must not be null");
+        SpotSize required = TYPE_TO_SIZE.get(vehicle.type());
+
+        lock.lock();
+        try {
+            // Find the nearest free spot: lowest level first, then lowest spot number
+            for (List<ParkingSpot> spotsOnFloor : floors) {
+                for (ParkingSpot spot : spotsOnFloor) {
+                    if (!spot.isOccupied() && spot.getSize() == required) {
+                        spot.setOccupied(true);
+                        Ticket ticket = new Ticket(
+                            UUID.randomUUID().toString(),
+                            vehicle,
+                            spot.getLevel(),
+                            spot.getNumber(),
+                            spot.getSize(),
+                            Instant.now()
+                        );
+                        activeTickets.put(ticket.ticketId(), ticket);
+                        ticketToSpot.put(ticket.ticketId(), spot);
+                        return ticket;
+                    }
+                }
+            }
+            throw new ParkingLotFullException(
+                "No available " + required + " spot for " + vehicle.type());
+        } finally {
+            lock.unlock();
+        }
     }
 
-    /**
-     * Releases the spot associated with the given ticket and calculates the fee.
-     *
-     * @param ticket the ticket issued at entry; must not be {@code null}
-     * @return a {@link Receipt} with duration and fee
-     * @throws InvalidTicketException   if the ticket is unknown or already redeemed
-     * @throws IllegalArgumentException if {@code ticket} is {@code null}
-     */
     public Receipt unpark(Ticket ticket) {
-        // TODO: implement
-        throw new UnsupportedOperationException("implement me");
+        Objects.requireNonNull(ticket, "ticket must not be null");
+
+        lock.lock();
+        try {
+            Ticket stored = activeTickets.remove(ticket.ticketId());
+            if (stored == null) {
+                throw new InvalidTicketException(
+                    "Unknown or already redeemed ticket: " + ticket.ticketId());
+            }
+            ParkingSpot spot = ticketToSpot.remove(ticket.ticketId());
+            spot.setOccupied(false);
+
+            Instant exitTime = Instant.now();
+            long elapsedSeconds = exitTime.getEpochSecond() - stored.entryTime().getEpochSecond();
+            long durationMinutes = (long) Math.ceil(elapsedSeconds / 60.0);
+            BigDecimal fee = strategy.calculate(stored.vehicle().type(), durationMinutes);
+
+            return new Receipt(stored, exitTime, durationMinutes, fee);
+        } finally {
+            lock.unlock();
+        }
     }
 
-    /**
-     * Returns the current count of free spots for each vehicle type.
-     *
-     * <p>The map must contain an entry for every {@link VehicleType} constant,
-     * even if the count is zero.
-     *
-     * @return unmodifiable snapshot; never {@code null}
-     */
     public Map<VehicleType, Integer> getAvailability() {
-        // TODO: implement
-        throw new UnsupportedOperationException("implement me");
+        lock.lock();
+        try {
+            Map<VehicleType, Integer> result = new EnumMap<>(VehicleType.class);
+            for (VehicleType vt : VehicleType.values()) result.put(vt, 0);
+
+            SpotSize small  = SpotSize.SMALL;
+            SpotSize medium = SpotSize.MEDIUM;
+            SpotSize large  = SpotSize.LARGE;
+
+            for (List<ParkingSpot> floor : floors) {
+                for (ParkingSpot spot : floor) {
+                    if (!spot.isOccupied()) {
+                        VehicleType vt = switch (spot.getSize()) {
+                            case SMALL  -> VehicleType.BIKE;
+                            case MEDIUM -> VehicleType.CAR;
+                            case LARGE  -> VehicleType.TRUCK;
+                        };
+                        result.merge(vt, 1, Integer::sum);
+                    }
+                }
+            }
+            return Collections.unmodifiableMap(result);
+        } finally {
+            lock.unlock();
+        }
     }
 }

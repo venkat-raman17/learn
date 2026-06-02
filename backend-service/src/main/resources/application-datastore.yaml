@@ -1,0 +1,32 @@
+# Profile: datastore
+# Activates the SQL (R2DBC Postgres) and NoSQL (MongoDB) layers.
+# Requires: docker compose up -d postgres mongodb
+#
+# Usage:
+#   ./mvnw spring-boot:run -Dspring-boot.run.profiles=datastore
+#   ./mvnw test -Dspring.profiles.active=datastore -Dgroups=integration
+
+spring:
+  # Remove the default auto-config exclusions so R2DBC and MongoDB activate.
+  autoconfigure:
+    exclude: []
+
+  # ── SQL: R2DBC (reactive Postgres) ──────────────────────────────────────────
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/appdb
+    username: app
+    password: app_password
+    pool:
+      initial-size: 2
+      max-size: 10
+
+  # Run schema.sql on startup (creates tables if they don't exist).
+  sql:
+    init:
+      mode: always
+
+  # ── NoSQL: MongoDB reactive ─────────────────────────────────────────────────
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/appdb
+      auto-index-creation: true

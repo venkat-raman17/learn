@@ -1,17 +1,73 @@
 ---
+/**
+ * CONCEPT: Zero-JS Static Page
+ *
+ * This entire page is rendered to HTML at build time.
+ * No JavaScript is shipped to the browser — inspect Network tab to verify.
+ * All logic in the frontmatter (--- block) runs at build time on the server.
+ */
+import Layout from "../layouts/Layout.astro";
 
+const buildTime = new Date().toISOString();
+const concepts = [
+  {
+    href: "/blog",
+    emoji: "📰",
+    title: "Content Collections",
+    desc: "Type-safe Markdown-based CMS with Zod schema validation. getCollection() replaces a headless CMS fetch.",
+  },
+  {
+    href: "/islands",
+    emoji: "🏝️",
+    title: "Islands Architecture",
+    desc: "Selective hydration — static HTML by default, interactive React/Vue components only where needed.",
+  },
+  {
+    href: "/blog/zero-js-by-default",
+    emoji: "⚡",
+    title: "Zero JS by Default",
+    desc: "Astro sends no JavaScript unless you add a client:* directive. This page has none.",
+  },
+];
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="Astro — Rendering Patterns">
+  <h1>Astro 6 — Rendering Patterns</h1>
+
+  <p style="color: #555; margin-bottom: 0.5rem;">
+    Built at:{" "}
+    <code style="background: #f5f5f5; padding: 0.1rem 0.4rem; border-radius: 4px;">
+      {buildTime}
+    </code>
+  </p>
+
+  <p style="color: #555; margin-bottom: 2rem;">
+    Open DevTools → Network → JS. You'll see <strong>zero JavaScript files</strong>
+    downloaded for this page — the build timestamp above is rendered at build time,
+    not computed in the browser.
+  </p>
+
+  <div style="display: grid; gap: 1rem;">
+    {
+      concepts.map((c) => (
+        <a
+          href={c.href}
+          style="border: 1px solid #e0e0e0; border-radius: 10px; padding: 1.5rem; text-decoration: none; color: inherit; display: block;"
+        >
+          <h2 style="margin: 0 0 0.5rem;">
+            {c.emoji} {c.title}
+          </h2>
+          <p style="margin: 0; color: #555; font-size: 0.9rem;">{c.desc}</p>
+        </a>
+      ))
+    }
+  </div>
+
+  <aside
+    style="margin-top: 2rem; background: #f8f9fb; border-left: 4px solid #ff6b35; border-radius: 0 8px 8px 0; padding: 1rem 1.25rem; font-size: 0.85rem; color: #555;"
+  >
+    <strong>View source trick:</strong> Right-click → View Page Source. The HTML
+    is complete — no JSON payloads, no hydration scripts. This is the power of
+    Astro's static output.
+  </aside>
+</Layout>

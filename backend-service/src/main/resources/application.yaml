@@ -1,3 +1,54 @@
 spring:
   application:
     name: backend-service
+  # Graceful shutdown: stop accepting new requests, let in-flight ones finish (up to the timeout).
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+  # Disable infra-dependent auto-configs by default so the app/tests start without Docker.
+  # Spring Boot 4.x moved these to per-module packages (org.springframework.boot.r2dbc.*,
+  # org.springframework.boot.mongodb.*, org.springframework.boot.data.*).
+  # The `datastore` profile re-enables them (see application-datastore.yaml).
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.r2dbc.autoconfigure.R2dbcAutoConfiguration
+      - org.springframework.boot.r2dbc.autoconfigure.R2dbcTransactionManagerAutoConfiguration
+      - org.springframework.boot.r2dbc.autoconfigure.R2dbcInitializationAutoConfiguration
+      - org.springframework.boot.data.r2dbc.autoconfigure.DataR2dbcAutoConfiguration
+      - org.springframework.boot.data.r2dbc.autoconfigure.DataR2dbcRepositoriesAutoConfiguration
+      - org.springframework.boot.mongodb.autoconfigure.MongoReactiveAutoConfiguration
+      - org.springframework.boot.data.mongodb.autoconfigure.DataMongoReactiveAutoConfiguration
+      - org.springframework.boot.data.mongodb.autoconfigure.DataMongoReactiveRepositoriesAutoConfiguration
+
+server:
+  shutdown: graceful
+
+# ── Operational excellence ────────────────────────────────────────────────
+# Native structured logging (Spring Boot >= 3.4): one JSON object per console line in Elastic
+# Common Schema. Alternative built-in formats: `logstash`, `gelf`. No logback XML required.
+logging:
+  structured:
+    format:
+      console: ecs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # Expose the operational endpoints (kept off by default for safety).
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+      # Adds /actuator/health/liveness and /actuator/health/readiness probe groups (k8s-style).
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
+
+# Surfaced verbatim at /actuator/info.
+info:
+  app:
+    name: backend-service
+    description: Staff-prep backend — LLD katas + operational excellence layer
+    pillars: logs, metrics, traces, health, graceful-shutdown

@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * <p>These tests use only the public API defined in {@link NotificationService}
  * plus a minimal in-process stub channel — no external dependencies needed.
  */
-@Disabled("LLD practice — implement, then remove")
 class NotificationServiceTest {
 
     // ------------------------------------------------------------------

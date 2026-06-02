@@ -1,0 +1,150 @@
+---
+/**
+ * CONCEPT: Islands Architecture — Selective Hydration
+ *
+ * This page mixes static Astro components (0 JS) with interactive
+ * "islands" that hydrate independently.
+ *
+ * Islands are created via <script> tags in Astro components.
+ * Astro bundles only the JS needed for interactive sections —
+ * the rest of the page ships as pure HTML.
+ *
+ * Without a framework integration (e.g. @astrojs/react), islands
+ * are implemented as vanilla custom elements — demonstrating the
+ * same pattern framework components use under the hood.
+ */
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Islands Architecture — Astro">
+  <h1>Islands Architecture</h1>
+
+  <p style="color: #555; margin-bottom: 2rem;">
+    Each coloured box below is a separate "island". Static sections load
+    instantly — interactive sections hydrate independently. Check the
+    Network tab: only small, targeted JS files are loaded.
+  </p>
+
+  <!-- ── Island 1: Counter (interactive) ──────────────────────────── -->
+  <section style="border: 2px solid #3b82f6; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+    <h2 style="margin-top: 0; color: #1d4ed8;">🏝️ Island 1 — Counter (Vanilla JS)</h2>
+    <p style="color: #555; font-size: 0.9rem;">
+      This counter is an interactive island. Its JavaScript hydrates immediately
+      on page load (equivalent to <code>client:load</code>).
+    </p>
+
+    <counter-widget></counter-widget>
+
+    <script>
+      // Custom element = a self-contained island
+      class CounterWidget extends HTMLElement {
+        private count = 0;
+
+        connectedCallback() {
+          this.render();
+        }
+
+        render() {
+          this.innerHTML = `
+            <div style="display:flex;align-items:center;gap:1rem;margin-top:1rem;">
+              <button id="dec" style="width:40px;height:40px;border-radius:50%;border:2px solid #3b82f6;background:#fff;font-size:1.25rem;cursor:pointer;font-weight:bold;">−</button>
+              <span id="val" style="font-size:2rem;font-weight:700;min-width:3ch;text-align:center;">${this.count}</span>
+              <button id="inc" style="width:40px;height:40px;border-radius:50%;border:2px solid #3b82f6;background:#3b82f6;color:#fff;font-size:1.25rem;cursor:pointer;font-weight:bold;">+</button>
+            </div>
+          `;
+          this.querySelector('#dec')!.addEventListener('click', () => { this.count--; this.render(); });
+          this.querySelector('#inc')!.addEventListener('click', () => { this.count++; this.render(); });
+        }
+      }
+      customElements.define('counter-widget', CounterWidget);
+    </script>
+  </section>
+
+  <!-- ── Static section (no JS) ────────────────────────────────────── -->
+  <section style="border: 2px solid #22c55e; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+    <h2 style="margin-top: 0; color: #15803d;">🌿 Static Section — Zero JS</h2>
+    <p style="color: #555; font-size: 0.9rem;">
+      This section is pure HTML. It renders instantly, adds no JS weight, and
+      is fully accessible by default. Most of your page should look like this.
+    </p>
+    <ul style="color: #555;">
+      <li>Hero sections</li>
+      <li>Blog post body</li>
+      <li>Footer, navigation links</li>
+      <li>Pricing tables, comparison grids</li>
+    </ul>
+  </section>
+
+  <!-- ── Island 2: Clock (hydrates on idle) ────────────────────────── -->
+  <section style="border: 2px solid #f59e0b; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+    <h2 style="margin-top: 0; color: #b45309;">🏝️ Island 2 — Live Clock (idle hydration)</h2>
+    <p style="color: #555; font-size: 0.9rem;">
+      This clock hydrates after the browser goes idle (<code>requestIdleCallback</code>),
+      equivalent to Astro's <code>client:idle</code> directive. Non-critical
+      interactivity doesn't block page load.
+    </p>
+    <live-clock></live-clock>
+
+    <script>
+      class LiveClock extends HTMLElement {
+        private timer: ReturnType<typeof setInterval> | null = null;
+
+        connectedCallback() {
+          // Defer until browser is idle — equivalent to client:idle
+          if ('requestIdleCallback' in window) {
+            requestIdleCallback(() => this.start());
+          } else {
+            setTimeout(() => this.start(), 200);
+          }
+        }
+
+        start() {
+          this.tick();
+          this.timer = setInterval(() => this.tick(), 1000);
+        }
+
+        tick() {
+          this.innerHTML = `
+            <div style="font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums;margin-top:0.5rem;">
+              ${new Date().toLocaleTimeString()}
+            </div>
+          `;
+        }
+
+        disconnectedCallback() {
+          if (this.timer) clearInterval(this.timer);
+        }
+      }
+      customElements.define('live-clock', LiveClock);
+    </script>
+  </section>
+
+  <!-- ── Summary ───────────────────────────────────────────────────── -->
+  <aside
+    style="margin-top: 1.5rem; background: #f8f9fb; border-left: 4px solid #ff6b35; border-radius: 0 8px 8px 0; padding: 1rem 1.25rem; font-size: 0.85rem; color: #555;"
+  >
+    <strong>Key principle:</strong> Each island is independently hydrated.
+    A slow island doesn't block a fast one. The static sections load immediately
+    and are never blocked by JavaScript. This is fundamentally different from
+    React's all-or-nothing hydration model.
+  </aside>
+
+  <h2 style="margin-top: 2rem;">With Framework Components</h2>
+  <p style="color: #555; font-size: 0.9rem;">
+    To use React/Vue/Svelte components as islands, add the integration:
+  </p>
+  <pre style="background:#1e1e1e;color:#d4d4d4;padding:1rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;">
+<code>npx astro add react   # installs @astrojs/react
+
+# Then in any .astro file:
+import Counter from './Counter.tsx';   // React component
+
+# Hydrate immediately:
+&lt;Counter client:load /&gt;
+
+# Hydrate when visible:
+&lt;Counter client:visible /&gt;
+
+# Never hydrate (pure SSR):
+&lt;Counter /&gt;</code></pre>
+</Layout>

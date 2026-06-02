@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * <p>These tests compile against the skeleton API only — no internals are assumed.
  */
-@Disabled("LLD practice — implement, then remove @Disabled to verify")
 class LoggerTest {
 
     // -------------------------------------------------------------------------

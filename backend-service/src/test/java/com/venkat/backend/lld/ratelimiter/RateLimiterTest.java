@@ -22,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * <p>Remove the {@code @Disabled} annotation once you have implemented all classes.
  * All tests must pass without modifying this file.
  */
-@Disabled("LLD practice — implement, then remove @Disabled")
 class RateLimiterTest {
 
     /**
